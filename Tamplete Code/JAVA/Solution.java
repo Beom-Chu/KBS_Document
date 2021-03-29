@@ -45,9 +45,7 @@ public class Solution {
     		if(n%Character.getNumericValue(i)==0) result++;
     		if(n%(Character.getNumericValue(i))==0) result++;
     	}
-    	
-
-    	
+   
     	return result;
     }
 
