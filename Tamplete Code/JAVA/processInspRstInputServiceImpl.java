@@ -1,16 +1,3 @@
-/*==============================================================================
-*Copyright(c) 2020 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
-*
-*@ProcessChain : 물성검사결과입력
-*
-*@File     : processInspRstInputServiceImpl.java
-*
-*@FileName : 물성검사결과입력  ServiceImpl Class
-*
-* Date             Ver.      Name   Description
-*-----------------------------------------------------------------------------
-* 2021.03.04       1.00      KBS     최초 생성
-==============================================================================*/
 
 package com.qms.qmmi.service.impl;
 

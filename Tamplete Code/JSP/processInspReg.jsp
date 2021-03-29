@@ -1,16 +1,3 @@
-<%--==============================================================================
-*Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.  
-*
-*@ProcessChain : 물성검사등록
-*
-*@File	 : processInspReg.jsp
-*
-*@FileName : 물성검사등록 JSP
-*
-* Date             Ver.     Name     Description
-*-----------------------------------------------------------------------------
-* 2021.02.25		1.00	  KBS	 최초 생성
-==============================================================================--%>
 
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%-- 세션정보 및 권한정보  --%>

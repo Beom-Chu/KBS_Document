@@ -1,16 +1,3 @@
-/*==============================================================================
-*Copyright(c) 2020 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
-*
-*@ProcessChain : 물성검사계획등록
-*
-*@File     : ProcessInspPlanRegServiceImpl.java
-*
-*@FileName : 물성검사계획등록  ServiceImpl Class
-*
-* Date             Ver.      Name   Description
-*-----------------------------------------------------------------------------
-* 2021.02.23       1.00      KBS     최초 생성
-==============================================================================*/
 
 package com.qms.qmmi.service.impl;
 

@@ -1,18 +1,3 @@
-<%--==============================================================================
-*Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.  
-*
-*@ProcessChain :(울산)관리도 조회	
-*
-*@File	 : processContChartList.jsp
-*
-*@FileName : (울산)관리도 조회	 JSP
-*
-* Date             Ver.     Name     Description
-*-----------------------------------------------------------------------------
-* 2021.03.04		1.00	  KHS	 최초 생성
-* 2021.03.15		1.01	  KBS	 수정
-==============================================================================--%>
-
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%-- 세션정보 및 권한정보  --%>
 <%@ include file="../cmm/msTopInclude.jsp" %> 
