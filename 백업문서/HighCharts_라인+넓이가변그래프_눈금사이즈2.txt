@@ -1,0 +1,120 @@
+Highcharts.chart('container', {
+
+    chart: {
+        type: 'variwide'
+    },
+
+    title: {
+        text: 'Labor Costs in Europe, 2016'
+    },
+    xAxis: [{
+        type: 'linear',	/* 비율로 사이즈 책정 */
+        /* opposite: true */
+        labels : false,
+        tickLength: 0,
+        lineColor: 'transparent'
+    },
+    {
+        type: 'linear',
+        categories : [1,2,3,4,5,6,7,8,9,10,11,12]
+    }
+    ],
+		yAxis: [{ // Primary yAxis
+        title: {
+            text: 'Temperature',
+        },
+        lineWidth : 1,
+        offset: 0,
+        top: '0%',
+				height: '50%'
+    }, 
+    { // Secondary yAxis
+        title: {
+            text: 'Rainfall',
+        },
+        opposite: true,
+        lineWidth : 1,
+        offset: 0,
+        top: '0%',
+				height: '50%'
+    },
+    { // Primary yAxis
+        title: {
+            text: 'Temperature',
+        },
+        lineWidth : 2,
+        offset: 0,
+        top: '50%',
+				height: '50%'
+    }, { // Secondary yAxis
+        title: {
+            text: 'Rainfall',
+        },
+        opposite: true,
+        lineWidth : 2,
+        offset: 0,
+        top: '50%',
+				height: '50%'
+    }],
+    caption: {
+        text: 'Column widths are proportional to GDP'
+    },
+
+    legend: {
+        enabled: false
+    },
+
+    series: [{
+        name: 'mst Legth',
+        data: [	
+            ['a',50, 2],
+            [null],
+            [null],
+            [null],
+            ['b',35, 3],
+            [null],
+            [null],
+            [null],
+            ['c',33, 2],
+            [null],
+            [null],
+            ['e',33, 2]
+        ],
+        opacity : 0.6
+    },
+    {
+        name: 'Rainfall',
+        type: 'line',
+        yAxis: 1,
+        xAxis: 1,
+        data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4],
+    },
+    {
+        name: 'mst Legth',
+        data: [
+            ['a',50, 1],
+            [null],
+            ['b',42, 4],
+            [null],
+            [null],
+            [null],
+            ['e',33, 2],
+            [null],
+            [null],
+            ['e',33, 2],
+            [null],
+            [null]
+        ],
+        yAxis: 2,
+        opacity : 0.6
+    },
+    {
+        name: 'mst Legth',
+        type: 'line',
+        yAxis: 3,
+        xAxis: 1,
+        data: [39.9, 21.5, 56.4, 12.2, 140.0, 120.0, 160.6, 148.5, 100.4, 56.1, 176.6, 130.4],
+    }
+    ]
+
+});

@@ -1,0 +1,83 @@
+var resultTagMstNoChart =[
+{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113457000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113458000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113459000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113500000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113501000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113502000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113503000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113504000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113505000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113506000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113507000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113508000"}
+,{0: "HSCAA00010021001", 1: "HSCAA00010021001", tlgm_dtm: "20200610113509000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113510000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113511000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113512000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113513000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113514000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113515000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113516000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113517000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113518000"}
+,{1: "HSCAA00010021001", tlgm_dtm: "20200610113519000"}
+,{tlgm_dtm: "20200610113520000"}
+,{tlgm_dtm: "20200610113521000"}
+,{tlgm_dtm: "20200610113522000"}
+,{tlgm_dtm: "20200610113523000"}
+,{tlgm_dtm: "20200610113524000"}
+,{tlgm_dtm: "20200610113525000"}
+,{tlgm_dtm: "20200610113526000"}
+,{tlgm_dtm: "20200610113527000"}
+,{tlgm_dtm: "20200610113528000"}
+,{tlgm_dtm: "20200610113529000"}
+,{tlgm_dtm: "20200610113530000"}
+,{tlgm_dtm: "20200610113531000"}
+,{tlgm_dtm: "20200610113532000"}
+,{tlgm_dtm: "20200610113533000"}
+,{tlgm_dtm: "20200610113534000"}
+,{tlgm_dtm: "20200610113535000"}
+,{tlgm_dtm: "20200610113536000"}
+,{tlgm_dtm: "20200610113537000"}
+,{tlgm_dtm: "20200610113538000"}
+,{0: "HSCAA00010031001", 1: "HSCAA00010031001", tlgm_dtm: "20200610113508000"}
+,{0: "HSCAA00010031001", 1: "HSCAA00010031001", tlgm_dtm: "20200610113509000"}
+,{1: "HSCAA00010031001", tlgm_dtm: "20200610113510000"}
+,{1: "HSCAA00010031001", tlgm_dtm: "20200610113511000"}
+,{1: "HSCAA00010031001", tlgm_dtm: "20200610113512000"}
+,{1: "HSCAA00010031001", tlgm_dtm: "20200610113513000"}
+];
+var resultTagMstInfo = [
+ {mst_no: "HSCAA00010021001", length: "9"}
+,{mst_no: "HSCAA00010031001", length: "9"}
+];
+
+var data = [];
+var bfNo = "";
+var bfIdx = 0;
+for(var i=0;i<2;i++)
+{
+var tempData = [];
+	resultTagMstNoChart.forEach(function(item,it){
+    if(item[i] != undefined) {
+    	if(bfNo == item[i]) {
+      	tempData[bfIdx][2]++;
+        tempData.push([null]);
+      }else{
+      	bfNo=item[i];
+        bfIdx=it;
+        var leng = Number(resultTagMstInfo.find(obj => obj.mst_no == item[i]).length);
+        tempData.push([item[i],leng,1]);
+      }
+    }else{
+    	tempData.push([null]);
+      bfNo ="";
+    }
+  });
+  data.push(tempData);
+}
+
+console.log(data);
+
+
