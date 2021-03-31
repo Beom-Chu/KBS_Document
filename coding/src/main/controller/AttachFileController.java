@@ -32,7 +32,7 @@ import msCore.util.MsCoreUtiles;
 import msCore.util.MsSessionUtil;
 
 @Controller
-public class CmmAttachFileController extends MsCoreSupportController{
+public class AttachFileController extends MsCoreSupportController{
 	
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	

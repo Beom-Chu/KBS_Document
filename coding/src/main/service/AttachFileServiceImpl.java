@@ -18,7 +18,7 @@ import msCore.util.MsSessionUtil;
 
 // TODO: Auto-generated Javadoc
 @Service("cmmAttachFileService")
-public class CmmAttachFileServiceImpl implements CmmAttachFileService {
+public class AttachFileServiceImpl implements CmmAttachFileService {
 
 	@Resource(name = "cmmAttachFileMapper")
 	private CmmAttachFileMapper cmmAttachFileMapper;
