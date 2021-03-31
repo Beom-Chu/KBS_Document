@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+ -  Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
+ -
+ -  작  성  자 	: KBS
+ -  최초작성일 	: 2021. 03. 08
+ -  수  정  자 	:
+ -  최종수정일 	:
+ - 
+ -  Desctiption 	: 시료별 검사결과 조회 SQL
+-->
+
+<mapper namespace="com.qms.qmmi.service.impl.ProcessSmpInspRstListMapper">
+
+<resultMap id="resultMap" type="com.qms.qmmi.vo.ProcessSmpInspRstListVO">
+	<result column="insp_item_cd" property="inspItemCd"/>
+	<result column="insp_item_nm" property="inspItemNm"/>
+	<result column="prdtn_corp_id" property="prdtnCorpId"/>
+	<result column="fac_id" property="facId"/>
+	<result column="smp_insp_tp_cd" property="smpInspTpCd"/>
+	<result column="insp_tp_cd" property="inspTpCd"/>
+	<result column="smp_tp_cd" property="smpTpCd"/>
+	<result column="smp_grp_cd" property="smpGrpCd"/>
+	<result column="smp_cd" property="smpCd"/>
+	<result column="insp_dt" property="inspDt"/>
+	<result column="insp_dt_fr" property="inspDtFr"/>
+	<result column="insp_dt_to" property="inspDtTo"/>
+</resultMap>
+
+<select id="getProcessSmpInspRstListHeader" parameterType="com.qms.qmmi.vo.ProcessSmpInspRstListVO" resultMap="resultMap">
+	select /* 시료별 검사결과 조회 : 검사항목 Header 조회 [ProcessSmpInspRstListMapper.getProcessSmpInspRstListHeader] CreatedBy 김범수*/
+		 r.insp_item_cd
+		,i.insp_item_nm
+		,ii.sort_no 
+	  from tbl_qm_insp_mast m 
+	     , tbl_qm_insp_dtl d
+	     , tbl_qm_insp_rst r 
+	     , tbl_qm_insp_item i
+	     , tbl_qm_smp_insp_item ii
+	 where m.prdtn_corp_id 	= d.prdtn_corp_id
+	   and m.fac_id 		= d.fac_id
+	   and m.insp_reg_no 	= d.insp_reg_no
+	   and d.prdtn_corp_id 	= r.prdtn_corp_id
+	   and d.fac_id 		= r.fac_id
+	   and d.insp_reg_no 	= r.insp_reg_no
+	   and d.insp_smp_no 	= r.insp_smp_no
+	   and r.prdtn_corp_id 	= i.prdtn_corp_id 
+	   and r.fac_id 		= i.fac_id 
+	   and r.insp_item_cd 	= i.insp_item_cd 
+	   and d.prdtn_corp_id  = ii.prdtn_corp_id 
+	   and d.fac_id 		= ii.fac_id 
+	   and d.smp_cd 		= ii.smp_cd 
+	   and r.insp_item_cd 	= ii.insp_item_cd
+	   and m.prdtn_corp_id 	= #{prdtnCorpId}	
+	   and m.fac_id  		= #{facId}
+	   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+	   and d.insp_dtl_status= 'C'	/*진행상태[C:판정확정]*/
+	   and m.insp_tp_cd 	= #{inspTpCd}  -- 검사구분
+	   and m.smp_tp_cd 		= #{smpTpCd}  -- 시료유형
+	   and m.smp_grp_cd 	= #{smpGrpCd}  -- 시료그룹
+	   and r.insp_dt 		between nvl(#{inspDtFr},'00010101') and nvl(#{inspDtTo},'99991231')  /*검사일자*/
+	   <if test='smpCd != null and smpCd != ""'>
+	   and d.smp_cd 		= #{smpCd}  -- 시료
+	   </if>
+	 group by r.insp_item_cd,i.insp_item_nm,ii.sort_no 
+	 order by ii.sort_no,r.insp_item_cd
+</select>
+
+<select id="getProcessSmpInspRstList" parameterType="HashMap" resultType="HashMap">
+	/* 시료별 검사결과 조회 : 시료별 검사결과 조회 [ProcessSmpInspRstListMapper.getProcessSmpInspRstList] CreatedBy 김범수*/
+	with smp_mgmt as ( /*시료관리*/
+		select * from tbl_qm_smp_mgmt
+		where use_yn 		 = 'Y'		/*사용여부*/
+		  and smp_insp_tp_cd = '0401'		/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		  and prdtn_corp_id  = #{prdtnCorpId}	/*법인ID*/
+		  and fac_id 		 = #{facId}			/*공장ID*/
+	),
+	sm_t as ( /*시료유형*/
+		select * from smp_mgmt where data_tp_cd = 'SMP_TYPE'
+	),
+	sm_g as ( /*시료그룹*/
+		select * from smp_mgmt where data_tp_cd = 'SMP_GROUP'
+	),
+	sm_i as ( /*시료*/
+		select * from smp_mgmt where data_tp_cd = 'SMP_ITEM'
+	),
+	cmm_cd as ( /*공통코드*/
+		select * from tbl_cmm_cd
+	 	 where prdtn_corp_id = #{prdtnCorpId}	/*법인ID*/
+		   and use_yn 		 = 'Y'				/*사용여부*/
+	),
+	cit as ( /*검사구분*/
+		select * from cmm_cd where cd_tp_id = 'INSP_TP'
+	)
+	select 
+		 prdtn_corp_id 	as "prdtnCorpId"
+		,fac_id 		as "facId"
+		,insp_tp_cd 	as "inspTpCd"
+		,smp_tp_cd 		as "smpTpCd"
+		,smp_grp_cd 	as "smpGrpCd"
+		,smp_cd 		as "smpCd"
+		,lot_no 		as "lotNo"
+		,to_char(to_date(nvl(prdtn_dt,null)),'yyyy-mm-dd') as "prdtnDt"
+		,to_char(to_date(nvl(insp_dt,null)),'yyyy-mm-dd') as "inspDt"
+		,(select smp_nm from sm_t st where st.smp_cd = a.smp_tp_cd) 		 as "smpTpNm"			/*시료유형명*/
+		,(select smp_nm from sm_g sg where sg.smp_cd = a.smp_grp_cd) 		 as "smpGrpNm"          /*시료그룹명*/
+		,(select smp_nm from sm_i si where si.smp_cd = a.smp_cd) 			 as "smpNm"              /*시료명*/
+		,(select cd_val_kr_nm from cit where cit.cd_val = a.insp_tp_cd) 	 as "inspTpNm"          /*검사구분명*/
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,round(avg(${item}),2) as ${item}
+		</foreach>
+	from (
+		select 
+			 m.prdtn_corp_id 
+			,m.fac_id 
+			,m.insp_tp_cd 
+			,m.smp_tp_cd 
+			,m.smp_grp_cd 
+			,d.smp_cd 
+			,d.lot_no 
+			,d.prdtn_dt
+			,r.insp_dt 
+			<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+			,(case when r.insp_item_cd = #{item} then r.rst_val else null end) as ${item}
+			</foreach>
+		  from tbl_qm_insp_mast m 
+		     , tbl_qm_insp_dtl d
+		     , tbl_qm_insp_rst r 
+		 where m.prdtn_corp_id 	= d.prdtn_corp_id
+		   and m.fac_id 		= d.fac_id
+		   and m.insp_reg_no 	= d.insp_reg_no
+		   and d.prdtn_corp_id 	= r.prdtn_corp_id
+		   and d.fac_id 		= r.fac_id
+		   and d.insp_reg_no 	= r.insp_reg_no
+		   and d.insp_smp_no 	= r.insp_smp_no
+		   and m.prdtn_corp_id 	= #{prdtnCorpId}	
+		   and m.fac_id  		= #{facId}
+		   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		   and d.insp_dtl_status= 'C'	/*진행상태[C:판정확정]*/
+		   and m.insp_tp_cd 	= #{inspTpCd}  -- 검사구분
+		   and m.smp_tp_cd 		= #{smpTpCd}  -- 시료유형
+		   and m.smp_grp_cd 	= #{smpGrpCd}  -- 시료그룹
+		   and r.insp_dt 		between nvl(#{inspDtFr},'00010101') and nvl(#{inspDtTo},'99991231')  /*검사일자*/
+		   <if test='smpCd != null and smpCd != ""'>
+		   and d.smp_cd 		= #{smpCd}  -- 시료
+		   </if>
+	) a
+	group by prdtn_corp_id 
+			,fac_id 
+			,insp_tp_cd 
+			,smp_tp_cd 
+			,smp_grp_cd 
+			,smp_cd 
+			,lot_no
+			,prdtn_dt
+			,insp_dt
+	order by insp_tp_cd,smp_tp_cd,smp_grp_cd,smp_cd,lot_no,prdtn_dt,insp_dt
+</select>
+
+</mapper>

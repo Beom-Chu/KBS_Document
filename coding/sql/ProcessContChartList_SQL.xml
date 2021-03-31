@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+ -  Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
+ -
+ -  작  성  자 	: KBS
+ -  최초작성일 	: 2021. 03. 15
+ -  수  정  자 	:
+ -  최종수정일 	:
+ - 
+ -  Desctiption 	: 관리도 조회 SQL
+-->
+
+<mapper namespace="com.qms.qmmi.service.impl.ProcessContChartListMapper">
+
+<resultMap id="resultMap" type="com.qms.qmmi.vo.ProcessContChartListVO">
+	
+</resultMap>
+
+<select id="getProcessContChartListHeader" parameterType="HashMap" resultType="HashMap">
+	select /* (울산)물성현황 관리도 조회 : Header 조회 [ProcessTermPhysicalMapper.getProcessContChartListHeader] CreatedBy 김범수*/
+		 d.prdtn_dt as "prdtnDt"
+		 ,to_char(to_date(d.prdtn_dt),'mm/dd') as "prdtnMd"
+	  from tbl_qm_insp_mast m 
+	     , tbl_qm_insp_dtl d
+	     , tbl_qm_insp_rst r 
+	 where m.prdtn_corp_id 	= d.prdtn_corp_id
+	   and m.fac_id 		= d.fac_id
+	   and m.insp_reg_no 	= d.insp_reg_no
+	   and d.prdtn_corp_id 	= r.prdtn_corp_id
+	   and d.fac_id 		= r.fac_id
+	   and d.insp_reg_no 	= r.insp_reg_no
+	   and d.insp_smp_no 	= r.insp_smp_no
+	   and m.prdtn_corp_id 	= #{prdtnCorpId}	
+	   and m.fac_id  		= #{facId}
+	   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+	   and d.insp_dtl_status= 'C'		/*진행상태[C:판정확정]*/
+	   and d.prdtn_dt is not null
+	   and m.insp_tp_cd 	= #{inspTpCd}	-- 검사구분
+	   and m.smp_tp_cd 		= #{smpTpCd}	-- 시료유형
+	   and m.smp_grp_cd 	= #{smpGrpCd}	-- 시료그룹
+	   and d.smp_cd 		= #{smpCd}		-- 시료
+	   and d.prdtn_dt  		between nvl(#{prdtnDtFr},'00010101') and nvl(#{prdtnDtTo},'99991231')  /* 생산일자 */
+	   and d.prdpc_id 		= #{prdpcId}
+	   <if test='posNo != null and posNo != ""'>
+	   and r.pos_no 		= #{posNo}
+	   </if>
+	   <if test='inspItemRst != null and inspItemRst != ""'>
+	   and r.insp_item_rst = #{inspItemRst}
+	   </if>
+	   and r.insp_item_cd in 
+	   <foreach collection="paramInspItem"  item="item" open="(" close=")" separator="," index="index">
+		#{item}
+	   </foreach>
+	   group by d.prdtn_dt
+</select>
+
+<select id="getProcessContChartList" parameterType="HashMap" resultType="HashMap">
+	/* (울산)물성현황 관리도 조회 : 조회 [ProcessTermPhysicalMapper.getProcessContChartList] CreatedBy 김범수*/
+	with cmm_cd as ( /* 공통코드 */
+		select * from tbl_cmm_cd
+	 	 where prdtn_corp_id = #{prdtnCorpId}	/*법인ID*/
+		   and use_yn 		 = 'Y'				/*사용여부*/
+	),
+	uom as ( /* 유제코드 */
+		select * from cmm_cd where cd_tp_id = 'INSP_ITEM_UOM'
+	),
+	tb as (
+		select 
+			 r.insp_item_cd 
+			,i.insp_item_nm 
+			,i.uom_cd
+			,ii.ship_spec_max 
+			,ii.ship_spec_min
+			,ii.sort_no 
+			<foreach collection="paramPrdtnDt"  item="item" open="" close="" separator="" index="index">
+			,(case when d.prdtn_dt = #{item} then decode(r.rst_val,'',null,r.rst_val) else null end)::numeric as "${item}"
+			</foreach>
+		 from tbl_qm_insp_mast m 
+			, tbl_qm_insp_dtl d
+			, tbl_qm_insp_rst r 
+			, tbl_qm_smp_insp_item ii
+			, tbl_qm_insp_item i
+		where m.prdtn_corp_id 	= d.prdtn_corp_id
+		  and m.fac_id 			= d.fac_id
+		  and m.insp_reg_no 	= d.insp_reg_no
+		  and d.prdtn_corp_id 	= r.prdtn_corp_id
+		  and d.fac_id 			= r.fac_id
+		  and d.insp_reg_no 	= r.insp_reg_no
+		  and d.prdtn_corp_id 	= ii.prdtn_corp_id 
+		  and d.fac_id 			= ii.fac_id 
+		  and d.smp_cd 			= ii.smp_cd 
+		  and r.insp_item_cd 	= ii.insp_item_cd 
+		  and r.prdtn_corp_id 	= i.prdtn_corp_id 
+		  and r.fac_id 			= i.fac_id 
+		  and r.insp_item_cd 	= i.insp_item_cd 
+		  and ii.activ_yn 		= 'Y'
+		  and m.prdtn_corp_id 	= #{prdtnCorpId}	
+		  and m.fac_id  		= #{facId}
+		  and m.smp_insp_tp_cd 	= '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		  and d.insp_dtl_status	= 'C'		/*진행상태[C:판정확정]*/
+		  and d.prdtn_dt 		is not null
+		  and m.insp_tp_cd 		= #{inspTpCd}	-- 검사구분
+		  and m.smp_tp_cd 		= #{smpTpCd}	-- 시료유형
+		  and m.smp_grp_cd 		= #{smpGrpCd}	-- 시료그룹
+		  and d.smp_cd 			= #{smpCd}		-- 시료
+		  and d.prdtn_dt  		between nvl(#{prdtnDtFr},'00010101') and nvl(#{prdtnDtTo},'99991231')  /* 생산일자 */
+		  and d.prdpc_id 		= #{prdpcId}
+		  <if test='posNo != null and posNo != ""'>
+		  and r.pos_no 		= #{posNo}
+		  </if>
+		  <if test='inspItemRst != null and inspItemRst != ""'>
+		  and r.insp_item_rst = #{inspItemRst}
+		  </if>
+		  and r.insp_item_cd in 
+		  <foreach collection="paramInspItem"  item="item" open="(" close=")" separator="," index="index">
+			#{item}
+		  </foreach>
+	)
+	select 
+		 insp_item_cd as "inspItemCd"
+		,insp_item_nm as "inspItemNm"
+		,uom_cd		  as "uomCd"
+		,(select cd_val_kr_nm from uom  where uom.cd_val = t.uom_cd) as "uomNm"
+		,max(ship_spec_max) as "max"
+		,min(ship_spec_min) as "min"
+		<foreach collection="paramPrdtnDt"  item="item" open="" close="" separator="" index="index">
+		,round(avg("${item}"),2) as "${item}"
+		</foreach>
+	 from tb t
+	group by insp_item_cd,insp_item_nm,uom_cd,sort_no
+	order by sort_no
+</select>
+
+<select id="getProcessContChartData" parameterType="HashMap" resultType="HashMap">
+	/* (울산)물성현황 관리도 조회 : 차트 Data 조회 [ProcessTermPhysicalMapper.getProcessContChartData] CreatedBy 김범수*/
+	with tb as (
+		select
+			 d.prdtn_dt 
+			,d.doff_no 
+			<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+			,(case when r.insp_item_cd = #{item} then decode(r.rst_val,'',null,r.rst_val) else null end)::numeric as "${item}"
+			,(case when r.insp_item_cd = #{item} then decode(r.spec_min,'',null,r.spec_min) else null end)::numeric as "${item}_min"
+			,(case when r.insp_item_cd = #{item} then decode(r.spec_max,'',null,r.spec_max) else null end)::numeric as "${item}_max"
+			</foreach>
+		 from tbl_qm_insp_mast m
+			, tbl_qm_insp_dtl d
+			, tbl_qm_insp_rst r
+		where m.prdtn_corp_id 	= d.prdtn_corp_id
+		 and m.fac_id 			= d.fac_id
+		 and m.insp_reg_no 		= d.insp_reg_no
+		 and d.prdtn_corp_id 	= r.prdtn_corp_id
+		 and d.fac_id 			= r.fac_id
+		 and d.insp_reg_no 		= r.insp_reg_no
+		 and m.prdtn_corp_id 	= #{prdtnCorpId}	
+		 and m.fac_id  			= #{facId}
+		 and m.smp_insp_tp_cd 	= '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		 and d.insp_dtl_status	= 'C'		/*진행상태[C:판정확정]*/
+		 and d.prdtn_dt 		is not null
+		 and m.insp_tp_cd 		= #{inspTpCd}	-- 검사구분
+		 and m.smp_tp_cd 		= #{smpTpCd}	-- 시료유형
+		 and m.smp_grp_cd 		= #{smpGrpCd}	-- 시료그룹
+		 and d.smp_cd 			= #{smpCd}		-- 시료
+		 and d.prdtn_dt  		between nvl(#{prdtnDtFr},'00010101') and nvl(#{prdtnDtTo},'99991231')  /* 생산일자 */
+		 and d.prdpc_id 		= #{prdpcId}
+		 <if test='posNo != null and posNo != ""'>
+		 and r.pos_no 			= #{posNo}
+		 </if>
+		 <if test='inspItemRst != null and inspItemRst != ""'>
+		 and r.insp_item_rst 	= #{inspItemRst}
+		 </if>
+		 and r.insp_item_cd in 
+		 <foreach collection="paramInspItem"  item="item" open="(" close=")" separator="," index="index">
+			#{item}
+		 </foreach>
+	)
+	select
+		 prdtn_dt 	as "prdtnDt"
+		,doff_no 	as "doffNo"
+		,to_char(to_date(prdtn_dt),'mm/dd')||' ('||doff_no||')' as "prdtnDtDoff"
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,max("${item}") as "${item}"
+		,max("${item}_min") as "${item}_min"
+		,max("${item}_max") as "${item}_max"
+		</foreach>
+	 from tb t
+	group by prdtn_dt,doff_no
+	order by prdtn_dt,doff_no
+</select>
+
+<select id="getProcessContChartPlotLines" parameterType="HashMap" resultType="HashMap">
+	select /* (울산)물성현황 관리도 조회 : PlotLines Data 조회 [ProcessTermPhysicalMapper.getProcessContChartPlotLines] CreatedBy 김범수*/
+		 smp_cd			as "smpCd"
+		,insp_item_cd	as "inspItemCd"
+		,ship_spec_min	as "shipSpecMin"
+		,ship_spec_aim	as "shipSpecAim"
+		,ship_spec_max	as "shipSpecMax"
+		,mgmt_spec_min	as "mgmtSpecMin"
+		,mgmt_spec_aim	as "mgmtSpecAim"
+		,mgmt_spec_max	as "mgmtSpecMax"
+	from tbl_qm_smp_insp_item
+	where activ_yn = 'Y'
+	  and prdtn_corp_id = #{prdtnCorpId}
+	  and fac_id 		= #{facId}
+	  and smp_cd 		= #{smpCd}	
+	  and insp_item_cd in 
+	 <foreach collection="paramInspItem"  item="item" open="(" close=")" separator="," index="index">
+		#{item}
+	 </foreach>
+</select>
+
+</mapper>

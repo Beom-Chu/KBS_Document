@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+ -  Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
+ -
+ -  작  성  자 	: 김범수
+ -  최초작성일 	: 2021. 02. 23
+ -  수  정  자 	:
+ -  최종수정일 	:
+ - 
+ -  Desctiption 	: 물성검사계획등록 SQL
+-->
+
+<mapper namespace="com.qms.qmmi.service.impl.ProcessInspPlanRegMapper">
+
+<resultMap id="resultMap" type="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+	<result column="creator_id" property="creatorId"/>
+	<result column="created_time" property="createdTime"/>
+	<result column="creator_program_id" property="creatorProgramId"/>
+	<result column="modifier_id" property="modifierId"/>
+	<result column="modified_time" property="modifiedTime"/>
+	<result column="modifier_program_id" property="modifierProgramId"/>
+	<result column="prdtn_corp_id" property="prdtnCorpId"/>
+	<result column="fac_id" property="facId"/>
+	<result column="insp_plan_no" property="inspPlanNo"/>
+	<result column="insp_plan_nm" property="inspPlanNm"/>
+	<result column="insp_tp_cd" property="inspTpCd"/>
+	<result column="smp_tp_cd" property="smpTpCd"/>
+	<result column="smp_grp_cd" property="smpGrpCd"/>
+	<result column="day_tp_cd" property="dayTpCd"/>
+	<result column="use_yn" property="useYn"/>
+	<result column="file_seq" property="fileSeq"/>
+	<result column="remark" property="remark"/>
+	<result column="smp_cd" property="smpCd"/>
+	<result column="creator_nm" property="creatorNm"/>
+	<result column="bf_smp_cd" property="bfSmpCd"/>
+	<result column="file_cnt" property="fileCnt"/>
+	<result column="insp_tp_nm" property="inspTpNm"/>
+	<result column="smp_tp_nm" property="smpTpNm"/>
+	<result column="smp_grp_nm" property="smpGrpNm"/>
+	<result column="day_tp_nm" property="dayTpNm"/>
+</resultMap>
+
+<select id="getInspPlanMast" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO" resultMap="resultMap">
+	select /* 물성검사계획등록 : 물성검사계획 Master 조회 [ProcessInspPlanRegMapper.getInspPlanMast] CreatedBy 김범수*/
+		 to_char(created_time,'yyyy-mm-dd') as created_time	
+		,creator_id
+		,prdtn_corp_id	 /*생산법인ID*/
+		,fac_id			 /*공장ID*/
+		,insp_plan_no    /*검사계획번호*/
+		,insp_plan_nm    /*검사계획명*/
+		,insp_tp_cd      /*검사유형코드*/
+		,smp_tp_cd       /*시료유형코드*/
+		,smp_grp_cd      /*시료그룹코드*/
+		,day_tp_cd       /*요일구분코드*/
+		,use_yn          /*사용여부*/
+		,file_seq        /*파일SEQ*/
+		,remark          /*비고*/
+		,nvl((select u1.user_nm from tbl_user u1 where u1.prdtn_corp_id=pm.prdtn_corp_id and u1.user_id = pm.creator_id),pm.creator_id) as creator_nm
+		,(select count(*) from tbl_attach_file af where af.file_seq = pm.file_seq and af.del_flag != 'Y') as file_cnt
+	 from tbl_qm_insp_plan_mast pm
+	where prdtn_corp_id = #{prdtnCorpId}  /*생산법인ID*/
+	  and fac_id		= #{facId}        /*공장ID*/
+      and insp_plan_nm like '%'||#{inspPlanNm}||'%'
+	<if test='inspTpCd != null and inspTpCd != ""'>
+	  and insp_tp_cd 	= #{inspTpCd}
+	</if>
+</select>
+
+<insert id="insertInspPlanMast" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+insert into tbl_qm_insp_plan_mast /* 물성검사계획등록 : 물성검사계획 등록 [ProcessInspPlanRegMapper.insertInspPlanMast] CreatedBy 김범수*/
+(
+	 creator_id
+	,created_time
+	,creator_program_id
+	,modifier_id
+	,modified_time
+	,modifier_program_id
+	,prdtn_corp_id	 /*생산법인ID*/
+	,fac_id			 /*공장ID*/
+	,insp_plan_no    /*검사계획번호*/
+	,insp_plan_nm    /*검사계획명*/
+	,insp_tp_cd      /*검사유형코드*/
+	,smp_tp_cd       /*시료유형코드*/
+	,smp_grp_cd      /*시료그룹코드*/
+	,day_tp_cd       /*요일구분코드*/
+	,use_yn          /*사용여부*/
+	,file_seq        /*파일SEQ*/
+	,remark          /*비고*/
+)
+values
+(
+	 #{creatorId}
+	,sysdate
+	,#{creatorProgramId}
+	,#{modifierId}
+	,sysdate
+	,#{modifierProgramId}
+	,#{prdtnCorpId}	 /*생산법인ID*/
+	,#{facId}        /*공장ID*/
+	,(select nvl(max(insp_plan_no::numeric),0)+1 from tbl_qm_insp_plan_mast where prdtn_corp_id = #{prdtnCorpId} and fac_id = #{facId})   /*검사계획번호*/
+	,#{inspPlanNm}   /*검사계획명*/
+	,#{inspTpCd}     /*검사유형코드*/
+	,#{smpTpCd}      /*시료유형코드*/
+	,#{smpGrpCd}     /*시료그룹코드*/
+	,#{dayTpCd}      /*요일구분코드*/
+	,decode(#{useYn},'true','Y','N') /*사용여부*/
+	,#{fileSeq}      /*파일SEQ*/
+	,#{remark}       /*비고*/
+)
+</insert>
+
+<update id="updateInspPlanMast" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+update tbl_qm_insp_plan_mast /* 물성검사계획등록 : 물성검사계획 수정 [ProcessInspPlanRegMapper.updateInspPlanMast] CreatedBy 김범수*/
+set  modifier_id		 = #{modifierId}
+	,modified_time       = sysdate
+	,modifier_program_id = #{modifierProgramId}
+	,insp_plan_nm   = #{inspPlanNm}   /*검사계획명*/
+	,insp_tp_cd     = #{inspTpCd}     /*검사유형코드*/
+	,smp_tp_cd      = #{smpTpCd}      /*시료유형코드*/
+	,smp_grp_cd     = #{smpGrpCd}     /*시료그룹코드*/
+	,day_tp_cd      = #{dayTpCd}      /*요일구분코드*/
+	,use_yn         = decode(#{useYn},'true','Y','N') /*사용여부*/
+	,file_seq       = #{fileSeq}      /*파일SEQ*/
+	,remark         = #{remark}       /*비고*/
+where prdtn_corp_id	= #{prdtnCorpId}  /*생산법인ID*/
+  and fac_id		= #{facId}        /*공장ID*/
+  and insp_plan_no  = #{inspPlanNo}   /*검사계획번호*/
+</update>
+
+<delete id="deleteInspPlanMast" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+delete from tbl_qm_insp_plan_mast /* 물성검사계획등록 : 물성검사계획 삭제 [ProcessInspPlanRegMapper.deleteInspPlanMast] CreatedBy 김범수*/
+where prdtn_corp_id	= #{prdtnCorpId}  /*생산법인ID*/
+  and fac_id		= #{facId}        /*공장ID*/
+  and insp_plan_no  = #{inspPlanNo}   /*검사계획번호*/
+</delete>
+
+<select id="getInspPlanDtl" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO" resultMap="resultMap">
+	select /* 물성검사계획등록 : 물성검사계획 Detail 조회 [ProcessInspPlanRegMapper.getInspPlanDtl] CreatedBy 김범수*/
+		 to_char(pd.created_time,'yyyy-mm-dd') as created_time	
+		,pd.creator_id
+		,pd.prdtn_corp_id	/*생산법인ID*/
+		,pd.fac_id			/*공장ID*/
+		,pd.insp_plan_no    /*검사계획번호*/
+		,pd.smp_cd			/*시료코드*/
+		,nvl((select u1.user_nm from tbl_user u1 where u1.prdtn_corp_id=pd.prdtn_corp_id and u1.user_id = pd.creator_id),pd.creator_id) as creator_nm
+		,pm.insp_plan_nm	/*검사계획명*/
+		,pm.smp_grp_cd		/*시료그룹코드*/
+		,pd.smp_cd as bf_smp_cd	/*이전시료코드*/
+	 from tbl_qm_insp_plan_dtl pd
+	 	, tbl_qm_insp_plan_mast pm
+	where pd.prdtn_corp_id 	= pm.prdtn_corp_id
+	  and pd.fac_id			= pm.fac_id
+	  and pd.insp_plan_no	= pm.insp_plan_no
+	  and pd.prdtn_corp_id 	= #{prdtnCorpId}  /*생산법인ID*/
+	  and pd.fac_id			= #{facId}        /*공장ID*/
+	  and pd.insp_plan_no	= #{inspPlanNo}   /*검사계획번호*/
+</select>
+
+<insert id="insertInspPlanDtl" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+	insert into tbl_qm_insp_plan_dtl /* 물성검사계획등록 : 물성검사계획 Detail 등록 [ProcessInspPlanRegMapper.insertInspPlanDtl] CreatedBy 김범수*/
+	(
+		 creator_id
+		,created_time
+		,creator_program_id
+		,modifier_id
+		,modified_time
+		,modifier_program_id
+		,prdtn_corp_id	 /*생산법인ID*/
+		,fac_id			 /*공장ID*/
+		,insp_plan_no    /*검사계획번호*/
+		,smp_cd			 /*시료코드*/
+	)
+	values
+	(
+		 #{creatorId}
+		,sysdate
+		,#{creatorProgramId}
+		,#{modifierId}
+		,sysdate
+		,#{modifierProgramId}
+		,#{prdtnCorpId}	 /*생산법인ID*/
+		,#{facId}        /*공장ID*/
+		,#{inspPlanNo}   /*검사계획번호*/
+		,#{smpCd}		 /*시료코드*/
+	)
+</insert>
+
+<update id="updateInspPlanDtl" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+	update tbl_qm_insp_plan_dtl /* 물성검사계획등록 : 물성검사계획 Detail 수정 [ProcessInspPlanRegMapper.updateInspPlanDtl] CreatedBy 김범수*/
+	set  modifier_id		 = #{modifierId}
+		,modified_time       = sysdate
+		,modifier_program_id = #{modifierProgramId}
+		,smp_cd				 = #{smpCd}		/*시료코드*/
+	where prdtn_corp_id	= #{prdtnCorpId}  /*생산법인ID*/
+	  and fac_id		= #{facId}        /*공장ID*/
+	  and insp_plan_no  = #{inspPlanNo}   /*검사계획번호*/
+	  and smp_cd		= #{bfSmpCd}      /*이전시료코드*/
+</update>
+
+<delete id="deleteInspPlanDtl" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+	delete from tbl_qm_insp_plan_dtl /* 물성검사계획등록 : 물성검사계획 Detail 삭제 [ProcessInspPlanRegMapper.deleteInspPlanDtl] CreatedBy 김범수*/
+	where prdtn_corp_id	= #{prdtnCorpId}  /*생산법인ID*/
+	  and fac_id		= #{facId}        /*공장ID*/
+	  and insp_plan_no  = #{inspPlanNo}   /*검사계획번호*/
+	  <if test='smpCd != null and smpCd != ""'>
+	  and smp_cd		= #{smpCd}        /*이전시료코드*/
+	  </if>
+</delete>
+
+<update id="updateInspPlanMastFileSeq" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO">
+update tbl_qm_insp_plan_mast /* 물성검사계획등록 : 물성검사계획 파일SEQ 수정 [ProcessInspPlanRegMapper.updateInspPlanMastFileSeq] CreatedBy 김범수*/
+set  modifier_id		 = #{modifierId}
+	,modified_time       = sysdate
+	,modifier_program_id = #{modifierProgramId}
+	,file_seq       = #{fileSeq}      /*파일SEQ*/
+where prdtn_corp_id	= #{prdtnCorpId}  /*생산법인ID*/
+  and fac_id		= #{facId}        /*공장ID*/
+  and insp_plan_no  = #{inspPlanNo}   /*검사계획번호*/
+</update>
+
+
+<select id="getInspPlanMastPopup" parameterType="com.qms.qmmi.vo.ProcessInspPlanRegVO" resultMap="resultMap">
+	select /* 물성검사계획등록 : 물성검사계획 팝업 조회 [ProcessInspPlanRegMapper.getInspPlanMastPopup] CreatedBy 김범수*/
+		 pm.prdtn_corp_id   /*생산법인ID*/
+		,pm.fac_id          /*공장ID*/
+		,pm.insp_plan_no    /*검사계획번호*/
+		,pm.insp_plan_nm    /*검사계획명*/
+		,pm.insp_tp_cd      /*검사유형코드*/
+		,pm.smp_tp_cd       /*시료유형코드*/
+		,pm.smp_grp_cd      /*시료그룹코드*/
+		,pm.day_tp_cd       /*요일구분코드*/
+		,pm.use_yn          /*사용여부*/
+		,pm.file_seq        /*파일SEQ*/
+		,pm.remark          /*비고*/
+		,cc1.cd_val_kr_nm as insp_tp_nm /*검사구분명*/
+		,sm1.smp_nm       as smp_tp_nm  /*시료유형명*/
+		,sm2.smp_nm       as smp_grp_nm /*시료그룹명*/
+		,cc2.cd_val_kr_nm as day_tp_nm  /*요일명*/
+	 from tbl_qm_insp_plan_mast pm
+	    , tbl_cmm_cd cc1
+	    , tbl_cmm_cd cc2
+	    , tbl_qm_smp_mgmt sm1
+	    , tbl_qm_smp_mgmt sm2
+	where pm.prdtn_corp_id  = cc1.prdtn_corp_id(+)
+	  and pm.insp_tp_cd     = cc1.cd_val(+)
+	  and cc1.cd_tp_id(+)   = 'INSP_TP'
+	  and cc1.use_yn(+)     = 'Y'
+	  and pm.prdtn_corp_id  = cc2.prdtn_corp_id(+)
+	  and pm.day_tp_cd      = cc2.cd_val(+)
+	  and cc2.cd_tp_id(+)   = 'DAY_TP'
+	  and cc2.use_yn(+)     = 'Y'
+	  and pm.prdtn_corp_id  = sm1.prdtn_corp_id(+)
+	  and pm.fac_id         = sm1.fac_id(+)
+	  and pm.smp_tp_cd      = sm1.smp_cd(+)
+	  and sm1.data_tp_cd(+) = 'SMP_TYPE'
+	  and sm1.use_yn(+)     = 'Y'
+	  and pm.prdtn_corp_id  = sm2.prdtn_corp_id(+)
+	  and pm.fac_id         = sm2.fac_id(+)
+	  and pm.smp_grp_cd     = sm2.smp_cd(+)
+	  and sm2.data_tp_cd(+) = 'SMP_GROUP'
+	  and sm2.use_yn(+)     = 'Y'
+	  and pm.prdtn_corp_id  = #{prdtnCorpId}  /*생산법인ID*/
+	  and pm.fac_id		    = #{facId}        /*공장ID*/
+	  and pm.use_yn         = 'Y'             /*사용여부*/
+	  and pm.insp_plan_nm like '%'||#{inspPlanNm}||'%'
+	  <if test='inspTpCd != null and inspTpCd != ""'>
+	  and pm.insp_tp_cd     = #{inspTpCd}
+	  </if>
+	   <if test='dayTpCd != null and dayTpCd != ""'>
+	  and pm.day_tp_cd      = #{dayTpCd}
+	  </if>
+</select>
+
+</mapper>

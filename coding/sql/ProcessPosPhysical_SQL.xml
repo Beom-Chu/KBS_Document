@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+ -  Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
+ -
+ -  작  성  자 	: KBS
+ -  최초작성일 	: 2021. 03. 11
+ -  수  정  자 	:
+ -  최종수정일 	:
+ - 
+ -  Desctiption 	: (울산)Pos/End별 물성현황 SQL
+-->
+
+<mapper namespace="com.qms.qmmi.service.impl.ProcessPosPhysicalMapper">
+
+<resultMap id="resultMap" type="com.qms.qmmi.vo.ProcessPosPhysicalVO">
+	<result column="insp_item_cd" property="inspItemCd"/>
+	<result column="insp_item_nm" property="inspItemNm"/>
+	<result column="prdtn_corp_id" property="prdtnCorpId"/>
+	<result column="fac_id" property="facId"/>
+	<result column="smp_insp_tp_cd" property="smpInspTpCd"/>
+	<result column="insp_tp_cd" property="inspTpCd"/>
+	<result column="smp_tp_cd" property="smpTpCd"/>
+	<result column="smp_grp_cd" property="smpGrpCd"/>
+	<result column="smp_cd" property="smpCd"/>
+	<result column="prdtn_dt" property="prdtnDt"/>
+	<result column="prdtn_dt_fr" property="prdtnDtFr"/>
+	<result column="prdtn_dt_to" property="prdtnDtTo"/>
+	<result column="lot_no" property="lotNo"/>
+	<result column="doff_no" property="doffNo"/>
+	<result column="pos_no" property="posNo"/>
+	<result column="prdpc_id" property="prdpcId"/>
+	<result column="insp_item_rst" property="inspItemRst"/>
+</resultMap>
+
+<select id="getProcessPosPhysicalHeader" parameterType="com.qms.qmmi.vo.ProcessPosPhysicalVO" resultMap="resultMap">
+	select /* (울산)Pos/End별 물성현황 : 검사항목 Header 조회 [ProcessPosPhysicalMapper.getProcessPosPhysicalHeader] CreatedBy 김범수*/
+		 r.insp_item_cd
+		,i.insp_item_nm
+		,ii.sort_no 
+	  from tbl_qm_insp_mast m 
+	     , tbl_qm_insp_dtl d
+	     , tbl_qm_insp_rst r 
+	     , tbl_qm_insp_item i
+	     , tbl_qm_smp_insp_item ii
+	 where m.prdtn_corp_id 	= d.prdtn_corp_id
+	   and m.fac_id 		= d.fac_id
+	   and m.insp_reg_no 	= d.insp_reg_no
+	   and d.prdtn_corp_id 	= r.prdtn_corp_id
+	   and d.fac_id 		= r.fac_id
+	   and d.insp_reg_no 	= r.insp_reg_no
+	   and d.insp_smp_no 	= r.insp_smp_no
+	   and r.prdtn_corp_id 	= i.prdtn_corp_id 
+	   and r.fac_id 		= i.fac_id 
+	   and r.insp_item_cd 	= i.insp_item_cd 
+	   and d.prdtn_corp_id  = ii.prdtn_corp_id 
+	   and d.fac_id 		= ii.fac_id 
+	   and d.smp_cd 		= ii.smp_cd 
+	   and r.insp_item_cd 	= ii.insp_item_cd
+	   and m.prdtn_corp_id 	= #{prdtnCorpId}	
+	   and m.fac_id  		= #{facId}
+	   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+	   and d.insp_dtl_status= 'C'	/*진행상태[C:판정확정]*/
+	   and m.insp_tp_cd 	= #{inspTpCd}  -- 검사구분
+	   and m.smp_tp_cd 		= #{smpTpCd}  -- 시료유형
+	   and m.smp_grp_cd 	= #{smpGrpCd}  -- 시료그룹
+	   and d.smp_cd 		= #{smpCd}  -- 시료
+	   <if test='prdtnDt != null and prdtnDt != ""'>
+	   and d.prdtn_dt  		= #{prdtnDt}  /* 생산일자 */
+	   </if>
+	   <if test='prdpcId != null and prdpcId != ""'>
+	   and d.prdpc_id 		= #{prdpcId}
+	   </if>
+	   <if test='lotNo != null and lotNo != ""'>
+	   and d.lot_no 		= #{lotNo}
+	   </if>
+	   <if test='doffNo != null and doffNo != ""'>
+	   and d.doff_no 		= #{doffNo}
+	   </if>
+	   <if test='posNo != null and posNo != ""'>
+	   and r.pos_no 		= #{posNo}
+	   </if>
+	   <if test='inspItemRst != null and inspItemRst != ""'>
+	   and r.insp_item_rst = #{inspItemRst}
+	   </if>
+	 group by r.insp_item_cd,i.insp_item_nm,ii.sort_no 
+	 order by ii.sort_no,r.insp_item_cd
+</select>
+
+<select id="getProcessPosPhysical" parameterType="HashMap" resultType="HashMap">
+	/* (울산)Pos/End별 물성현황 : 조회 [ProcessPosPhysicalMapper.getProcessPosPhysical] CreatedBy 김범수*/
+	with smp_mgmt as ( /*시료관리*/
+		select * from tbl_qm_smp_mgmt
+		where use_yn 		= 'Y'				/*사용여부*/
+		 and smp_insp_tp_cd = '0401'			/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		 and prdtn_corp_id  = #{prdtnCorpId}	/*법인ID*/
+		 and fac_id 		= #{facId}			/*공장ID*/
+	),
+	sm_i as ( /* 시료 */
+		select * from smp_mgmt where data_tp_cd = 'SMP_ITEM'
+	),
+	cmm_cd as ( /* 공통코드 */
+		select * from tbl_cmm_cd
+	 	 where prdtn_corp_id = #{prdtnCorpId}	/*법인ID*/
+		   and use_yn 		 = 'Y'				/*사용여부*/
+	),
+	emul as ( /* 유제코드 */
+		select * from cmm_cd where cd_tp_id = 'EMUL_CD'
+	),
+	tb as ( /* 검사결과 */
+		select 
+			 m.prdtn_corp_id 
+			,m.fac_id 
+			,m.insp_tp_cd 
+			,m.smp_tp_cd 
+			,m.smp_grp_cd 
+			,d.smp_cd 
+			,(select smp_nm from sm_i si where si.smp_cd = d.smp_cd) as smp_nm
+			,d.prdpc_id
+			,(select prdpc_kr_nm from tbl_msp_prdpc p where p.prdpc_id = d.prdpc_id) as prdpc_nm 
+			,to_char(to_date(nvl(d.prdtn_dt,null)),'yyyy-mm-dd') as prdtn_dt
+			,d.lot_no
+			,d.doff_no
+			,r.pos_no
+			,d.yarn_spd 
+			,d.emul_cd
+			<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+			,(case when r.insp_item_cd = #{item} then decode(r.rst_val,'',null,r.rst_val) else null end)::numeric as "${item}"
+			,(case when r.insp_item_cd = #{item} then decode(r.spec_aim,'',null,r.spec_aim) else null end)::numeric as "${item}_spec_aim"
+			,(case when r.insp_item_cd = #{item} then decode(r.spec_max,'',null,r.spec_max) else null end)::numeric as "${item}_spec_max"
+			,(case when r.insp_item_cd = #{item} then decode(r.spec_min,'',null,r.spec_min) else null end)::numeric as "${item}_spec_min"
+			</foreach>
+		  from tbl_qm_insp_mast m 
+		     , tbl_qm_insp_dtl d
+		     , tbl_qm_insp_rst r 
+		 where m.prdtn_corp_id 	= d.prdtn_corp_id
+		   and m.fac_id 		= d.fac_id
+		   and m.insp_reg_no 	= d.insp_reg_no
+		   and d.prdtn_corp_id 	= r.prdtn_corp_id
+		   and d.fac_id 		= r.fac_id
+		   and d.insp_reg_no 	= r.insp_reg_no
+		   and d.insp_smp_no 	= r.insp_smp_no
+		   and m.prdtn_corp_id 	= #{prdtnCorpId}	
+		   and m.fac_id  		= #{facId}
+		   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		   and d.insp_dtl_status= 'C'		/*진행상태[C:판정확정]*/
+		   and m.insp_tp_cd 	= #{inspTpCd}  	-- 검사구분
+		   and m.smp_tp_cd 		= #{smpTpCd}  	-- 시료유형
+		   and m.smp_grp_cd 	= #{smpGrpCd}  	-- 시료그룹
+		   and d.smp_cd 		= #{smpCd}  	-- 시료
+		   <if test='prdtnDt != null and prdtnDt != ""'>
+		   and d.prdtn_dt  		= #{prdtnDt}  /* 생산일자 */
+		   </if>
+		   <if test='prdpcId != null and prdpcId != ""'>
+		   and d.prdpc_id 		= #{prdpcId}
+		   </if>
+		   <if test='lotNo != null and lotNo != ""'>
+		   and d.lot_no 		= #{lotNo}
+		   </if>
+		   <if test='doffNo != null and doffNo != ""'>
+		   and d.doff_no 		= #{doffNo}
+		   </if>
+		   <if test='posNo != null and posNo != ""'>
+		   and r.pos_no 		= #{posNo}
+		   </if>
+		   <if test='inspItemRst != null and inspItemRst != ""'>
+		   and r.insp_item_rst = #{inspItemRst}
+		   </if>
+	),
+	calc_form1 as ( /* 계산식 항목1 */
+		select 'Avg' as tp	, '0' as sort union
+		select 'Range'		, '1'
+	),
+	calc_form2 as ( /* 계산식 항목2 */
+		select 'Avg' as tp	, '0' as sort union
+		select 'Range'		, '1' union
+		select 'Max'		, '2' union
+		select 'Min'		, '3' union
+		select 'Sigma'		, '4' union
+		select 'CV%'		, '5' union
+		select 'Cpk'		, '6' union
+		select 'CpU'		, '7' union
+		select 'CpL'		, '8'
+	)
+	select 
+		 prdtn_corp_id 	as "prdtnCorpId"	/*법인ID*/
+		,fac_id 	   	as "facId"			/*공장ID*/
+		,insp_tp_cd 	as "inspTpCd"		/*검사구분*/
+		,smp_tp_cd 		as "smpTpCd"		/*시료유형*/
+		,smp_grp_cd 	as "smpGrpCd"		/*시료그룹*/
+		,smp_cd			as "smpCd"			/*시료코드*/
+		,smp_nm 		as "smpNm"			/*시료명*/
+		,prdpc_id		as "prdpcId"		/*Line*/
+		,prdpc_nm		as "prdpcNm"		/*Line명*/
+		,prdtn_dt		as "prdtnDt"		/*생산일*/
+		,lot_no 		as "lotNo"			/*Lot No*/
+		,doff_no		as "doffNo"			/*Doffing No*/
+		,pos_no			as "posNo"			/*Position No*/
+		,yarn_spd 		as "yarnSpd"		/*사속*/
+		,emul_cd		as "emulCd"			/*유제코드*/
+		,(select cd_val_kr_nm from emul where emul.cd_val = t1.emul_cd) as "emulNm" /*유제코드명*/
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,max("${item}") as "${item}"
+		</foreach>
+		,'3' as sort
+		,nvl(regexp_replace(pos_no,'[^0-9]',''),'0') as sort2
+		,doff_no as doff_sort
+	from tb t1
+	where 'N' = #{chkDoff}	/* Doff별 체크 여부 */
+	group by prdtn_corp_id, fac_id, insp_tp_cd, smp_tp_cd, smp_grp_cd, smp_cd, smp_nm,
+			 prdpc_id,prdpc_nm, prdtn_dt, lot_no, doff_no, pos_no, yarn_spd, emul_cd
+	union all
+	select 
+		 prdtn_corp_id 	as "prdtnCorpId"	/*법인ID*/
+		,fac_id 	   	as "facId"			/*공장ID*/
+		,insp_tp_cd 	as "inspTpCd"		/*검사구분*/
+		,smp_tp_cd 		as "smpTpCd"		/*시료유형*/
+		,smp_grp_cd 	as "smpGrpCd"		/*시료그룹*/
+		,smp_cd			as "smpCd"			/*시료코드*/
+		,smp_nm 		as "smpNm"			/*시료명*/
+		,prdpc_id		as "prdpcId"		/*Line*/
+		,prdpc_nm		as "prdpcNm"		/*Line명*/
+		,prdtn_dt		as "prdtnDt"		/*생산일*/
+		,lot_no 		as "lotNo"			/*Lot No*/
+		,'Avg'			as "doffNo"			/*Doffing No*/
+		,pos_no			as "posNo"			/*Position No*/
+		,yarn_spd 		as "yarnSpd"		/*사속*/
+		,emul_cd		as "emulCd"			/*유제코드*/
+		,(select cd_val_kr_nm from emul where emul.cd_val = t11.emul_cd) as "emulNm" /*유제코드명*/
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,round(avg("${item}"),2) as "${item}"
+		</foreach>
+		,'3' as sort
+		,nvl(regexp_replace(pos_no,'[^0-9]',''),'0') as sort2
+		,'ZZZZ' as doff_sort
+	from tb t11
+	group by prdtn_corp_id, fac_id, insp_tp_cd, smp_tp_cd, smp_grp_cd, smp_cd, smp_nm,
+			 prdpc_id,prdpc_nm, prdtn_dt, lot_no, pos_no, yarn_spd, emul_cd
+	union all
+	select
+		 prdtn_corp_id
+		,fac_id 		
+		,insp_tp_cd 	
+		,smp_tp_cd 		
+		,smp_grp_cd 	
+		,smp_cd 		
+		,smp_nm
+		,prdpc_id	
+		,prdpc_nm
+		,prdtn_dt
+		,lot_no 		
+		,doff_no	
+		,cf1.tp 
+		,null /*사속*/
+		,null /*유제코드*/
+		,null /*유제코드명*/
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,case when cf1.tp = 'Avg' 	then round(avg("${item}"),2)
+              when cf1.tp = 'Range' then max("${item}") - min("${item}")
+         end as "${item}"
+        </foreach>
+        ,cf1.sort
+        ,'0' as sort2
+        ,doff_no as doff_sort
+	from tb t2, calc_form1 cf1
+	group by prdtn_corp_id, fac_id, insp_tp_cd, smp_tp_cd, smp_grp_cd, smp_cd, smp_nm,
+			prdpc_id, prdpc_nm, prdtn_dt, lot_no, doff_no, tp, sort
+	union all
+	select 
+		 prdtn_corp_id
+		,fac_id 		
+		,insp_tp_cd 	
+		,smp_tp_cd 		
+		,smp_grp_cd 	
+		,smp_cd 		
+		,smp_nm
+		,prdpc_id
+		,prdpc_nm
+		,'TOTAL' /*생산일자*/
+		,'TOTAL' /*Lot No.*/	
+		,'TOTAL' /*Doff. No.*/
+		,cf2.tp 
+		,null /*사속*/
+		,null /*유제코드*/
+		,null /*유제코드명*/
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,case when cf2.tp = 'Avg'	then round(avg("${item}"),2)
+              when cf2.tp = 'Range' then max("${item}") - min("${item}")
+              when cf2.tp = 'Max'	then max("${item}")
+              when cf2.tp = 'Min'	then min("${item}")
+              when cf2.tp = 'Sigma' then round(stddev_pop("${item}"),2)
+              when cf2.tp = 'CV%'	then pkg_qms_formula.fnc_get_cv(stddev_pop("${item}"),avg("${item}"))
+              when cf2.tp = 'Cpk'	then pkg_qms_formula.fnc_get_cpk(max("${item}_spec_min"),max("${item}_spec_max"),max("${item}_spec_aim"),stddev_pop("${item}"),avg("${item}"))
+              when cf2.tp = 'CpU'	then pkg_qms_formula.fnc_get_spu(max("${item}_spec_max"),stddev_pop("${item}"),avg("${item}"))
+              when cf2.tp = 'CpL'	then pkg_qms_formula.fnc_get_cpl(max("${item}_spec_min"),stddev_pop("${item}"),avg("${item}"))
+         end as "${item}"
+         </foreach>
+        ,cf2.sort
+        ,'0' as sort2
+        ,'ZZZZ' as doff_sort
+	from tb t3, calc_form2 cf2
+	group by prdtn_corp_id, fac_id, insp_tp_cd, smp_tp_cd, smp_grp_cd, smp_cd, smp_nm,
+			prdpc_id, prdpc_nm, tp,sort
+	union all
+	select 
+		 prdtn_corp_id
+		,fac_id 		
+		,insp_tp_cd 	
+		,smp_tp_cd 		
+		,smp_grp_cd 	
+		,smp_cd 		
+		,smp_nm
+		,'TOTAL'
+		,'TOTAL'
+		,'TOTAL' /*생산일자*/
+		,'TOTAL' /*Lot No.*/	
+		,'TOTAL' /*Doff. No.*/
+		,cf2.tp 
+		,null /*사속*/
+		,null /*유제코드*/
+		,null /*유제코드명*/
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,case when cf2.tp = 'Avg'	then round(avg("${item}"),2)
+              when cf2.tp = 'Range' then max("${item}") - min("${item}")
+              when cf2.tp = 'Max'	then max("${item}")
+              when cf2.tp = 'Min'	then min("${item}")
+              when cf2.tp = 'Sigma' then round(stddev_pop("${item}"),2)
+              when cf2.tp = 'CV%'	then pkg_qms_formula.fnc_get_cv(stddev_pop("${item}"),avg("${item}"))
+              when cf2.tp = 'Cpk'	then pkg_qms_formula.fnc_get_cpk(max("${item}_spec_min"),max("${item}_spec_max"),max("${item}_spec_aim"),stddev_pop("${item}"),avg("${item}"))
+              when cf2.tp = 'CpU'	then pkg_qms_formula.fnc_get_spu(max("${item}_spec_max"),stddev_pop("${item}"),avg("${item}"))
+              when cf2.tp = 'CpL'	then pkg_qms_formula.fnc_get_cpl(max("${item}_spec_min"),stddev_pop("${item}"),avg("${item}"))
+         end as "${item}"
+         </foreach>
+        ,cf2.sort
+        ,'0' as sort2
+        ,'ZZZZ' as doff_sort
+	from tb t4, calc_form2 cf2
+	group by prdtn_corp_id, fac_id, insp_tp_cd, smp_tp_cd, smp_grp_cd, smp_cd, smp_nm,tp,sort
+	order by "smpCd","prdpcId","prdtnDt","lotNo",doff_sort,sort,sort2
+</select>
+
+</mapper>

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+ -  Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
+ -
+ -  작  성  자 	: KBA
+ -  최초작성일 	: 2021. 03. 04
+ -  수  정  자 	:
+ -  최종수정일 	:
+ - 
+ -  Desctiption 	: 물성검사결과입력 SQL
+-->
+
+<mapper namespace="com.qms.qmmi.service.impl.ProcessInspRstInputMapper">
+
+<resultMap id="resultMap" type="com.qms.qmmi.vo.ProcessInspRstInputVO">
+	<result column="creator_id" property="creatorId"/>
+	<result column="created_time" property="createdTime"/>
+	<result column="creator_program_id" property="creatorProgramId"/>
+	<result column="modifier_id" property="modifierId"/>
+	<result column="modified_time" property="modifiedTime"/>
+	<result column="modifier_program_id" property="modifierProgramId"/>
+	<result column="prdtn_corp_id" property="prdtnCorpId"/>
+	<result column="fac_id" property="facId"/>
+	<result column="insp_reg_no" property="inspRegNo"/>
+	<result column="insp_smp_no" property="inspSmpNo"/>
+	<result column="insp_tp_cd" property="inspTpCd"/>
+	<result column="insp_reg_nm" property="inspRegNm"/>
+	<result column="insp_status" property="inspStatus"/>
+	<result column="smp_tp_cd" property="smpTpCd"/>
+	<result column="smp_grp_cd" property="smpGrpCd"/>
+	<result column="smp_cd" property="smpCd"/>
+	<result column="prdtn_dt" property="prdtnDt"/>
+	<result column="lot_no" property="lotNo"/>
+	<result column="doff_no" property="doffNo"/>
+	<result column="pos_no" property="posNo"/>
+	<result column="insp_item_cd" property="inspItemCd"/>
+	<result column="uom_cd" property="uomCd"/>
+	<result column="spec_aim" property="specAim"/>
+	<result column="spec_max" property="specMax"/>
+	<result column="spec_min" property="specMin"/>
+	<result column="insp_val" property="inspVal"/>
+	<result column="rst_val" property="rstVal"/>
+	<result column="insp_item_rst" property="inspItemRst"/>
+	<result column="reinsp_val" property="reinspVal"/>
+	<result column="frml_no" property="frmlNo"/>
+	<result column="insp_user_id" property="inspUserId"/>
+	<result column="insp_dt" property="inspDt"/>
+	<result column="reg_user_id" property="regUserId"/>
+	<result column="reg_date" property="regDate"/>
+	<result column="smp_tp_nm" property="smpTpNm"/>
+	<result column="smp_grp_nm" property="smpGrpNm"/>
+	<result column="smp_nm" property="smpNm"/>
+	<result column="insp_tp_nm" property="inspTpNm"/>
+	<result column="insp_status_nm" property="inspStatusNm"/>
+	<result column="uom_nm" property="uomNm"/>
+	<result column="insp_item_rst_nm" property="inspItemRstNm"/>
+	<result column="insp_user_nm" property="inspUserNm"/>
+	<result column="reg_user_nm" property="regUserNm"/>
+	<result column="frml_nm" property="frmlNm"/>
+	<result column="reg_user" property="regUser"/>
+	<result column="reg_date_fr" property="regDateFr"/>
+	<result column="reg_date_to" property="regDateTo"/>
+	<result column="insp_item_nm" property="inspItemNm"/>
+	<result column="user_id" property="userId"/>
+	<result column="mgmt_stnd_tp_cd" property="mgmtStndTpCd"/>
+	<result column="insp_dtl_status" property="inspDtlStatus"/>
+	<result column="insp_dtl_status_nm" property="inspDtlStatusNm"/>
+</resultMap>
+
+<select id="getProcessInspRstInput" parameterType="com.qms.qmmi.vo.ProcessInspRstInputVO" resultMap="resultMap">
+	/* 물성검사결과입력 : 물성검사결과입력 조회 [ProcessInspRstInputMapper.getProcessInspRstInput] CreatedBy 김범수*/
+	with smp_mgmt as ( /*시료관리*/
+		select * from tbl_qm_smp_mgmt
+		where use_yn 		 = 'Y'		/*사용여부*/
+		  and smp_insp_tp_cd = '0401'		/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		  and prdtn_corp_id  = #{prdtnCorpId}	/*법인ID*/
+		  and fac_id 		 = #{facId}			/*공장ID*/
+	),
+	sm_t as ( /*시료유형*/
+		select * from smp_mgmt where data_tp_cd = 'SMP_TYPE'
+	),
+	sm_g as ( /*시료그룹*/
+		select * from smp_mgmt where data_tp_cd = 'SMP_GROUP'
+	),
+	sm_i as ( /*시료*/
+		select * from smp_mgmt where data_tp_cd = 'SMP_ITEM'
+	),
+	cmm_cd as ( /*공통코드*/
+		select * from tbl_cmm_cd
+	 	 where prdtn_corp_id = #{prdtnCorpId}	/*법인ID*/
+		   and use_yn 		 = 'Y'				/*사용여부*/
+	),
+	cit as ( /*검사구분*/
+		select * from cmm_cd where cd_tp_id = 'INSP_TP'
+	),
+	cis as ( /*검사상태*/
+		select * from cmm_cd where cd_tp_id = 'INSP_STATUS'	
+	),
+	cu as ( /*단위*/
+		select * from cmm_cd where cd_tp_id = 'INSP_ITEM_UOM'
+	),
+	cp as ( /*합부판정*/
+		select * from cmm_cd where cd_tp_id = 'PASS_STATUS'
+	)
+	select
+		 m.insp_tp_cd		/*검사구분*/
+		,m.insp_reg_nm      /*검사명*/
+		,d.insp_dtl_status  /*진행상태*/
+		,m.smp_tp_cd        /*시료유형*/
+		,m.smp_grp_cd       /*시료그룹*/
+		,d.smp_cd           /*시료*/
+		,to_char(to_date(nvl(d.prdtn_dt,null)),'yyyy-mm-dd') as prdtn_dt /*생산일자*/
+		,d.lot_no           /*Lot No.*/
+		,d.doff_no          /*Doff*/
+		,pd.pos_no          /*Pos/End*/
+		,r.insp_item_cd     /*검사항목*/
+		,i.insp_item_nm 	/*검사항목명*/
+		,i.uom_cd           /*단위*/
+		,r.spec_aim         /*Target*/
+		,r.spec_max         /*Max*/
+		,r.spec_min         /*Min*/
+		,r.insp_val         /*분석값*/
+		,r.rst_val          /*결과값*/
+		,r.insp_item_rst    /*합부판정*/
+		,r.reinsp_val       /*재분석값*/
+		,fm.frml_no 		/*계산식*/
+		,fm.frml_nm 		/*계산식명*/
+		,nvl(r.insp_user_id,#{userId}) as insp_user_id /*검사원*/
+		,to_char(case when r.insp_dt is null or r.insp_dt = '' then sysdate else to_date(r.insp_dt) end,'yyyy-mm-dd') as insp_dt /*검사일자*/
+		,m.reg_user_id      /*등록자*/
+		,to_char(to_date(nvl(m.reg_date,null)),'yyyy-mm-dd') as reg_date /*등록일자*/
+		,(select smp_nm from sm_t st where st.smp_cd = m.smp_tp_cd) 		 as smp_tp_nm			/*시료유형명*/
+		,(select smp_nm from sm_g sg where sg.smp_cd = m.smp_grp_cd) 		 as smp_grp_nm          /*시료그룹명*/
+		,(select smp_nm from sm_i si where si.smp_cd = d.smp_cd) 			 as smp_nm              /*시료명*/
+		,(select cd_val_kr_nm from cit where cit.cd_val = m.insp_tp_cd) 	 as insp_tp_nm          /*검사구분명*/
+		,(select cd_val_kr_nm from cis where cis.cd_val = d.insp_dtl_status) as insp_dtl_status_nm  /*검사상태명*/
+		,(select cd_val_kr_nm from cu  where cu.cd_val = i.uom_cd)  		 as uom_nm              /*단위명*/
+		,(select cd_val_kr_nm from cp  where cp.cd_val = r.insp_item_rst) 	 as insp_item_rst_nm    /*합부판정명*/
+		,u1.user_nm as insp_user_nm		/*검사원명*/
+		,u2.user_nm as reg_user_nm		/*등록자명*/
+		,d.insp_reg_no					/*검사등록번호*/
+		,d.insp_smp_no					/*시료별검사번호*/
+		,sii.mgmt_stnd_tp_cd 			/*관리기준유형코드*/
+	from tbl_qm_insp_mast 		m
+		,tbl_qm_insp_dtl 		d
+		,tbl_qm_insp_pos_dtl 	pd
+		,tbl_qm_insp_rst 		r
+		,tbl_qm_insp_item 		i
+		,tbl_qm_smp_insp_item 	sii
+		,tbl_formula_mgmt		fm
+		,tbl_user				u1
+		,tbl_user				u2
+	where m.prdtn_corp_id	= d.prdtn_corp_id 
+	  and m.fac_id 			= d.fac_id 
+	  and m.insp_reg_no		= d.insp_reg_no
+	  and d.prdtn_corp_id	= pd.prdtn_corp_id 
+	  and d.fac_id 			= pd.fac_id 
+	  and d.insp_reg_no 	= pd.insp_reg_no 
+	  and d.insp_smp_no 	= pd.insp_smp_no 
+	  and pd.prdtn_corp_id 	= r.prdtn_corp_id 
+	  and pd.fac_id			= r.fac_id 
+	  and pd.insp_reg_no	= r.insp_reg_no 
+	  and pd.insp_smp_no	= r.insp_smp_no 
+	  and pd.pos_no			= r.pos_no 
+	  and r.prdtn_corp_id 	= i.prdtn_corp_id
+	  and r.fac_id 			= i.fac_id
+	  and r.insp_item_cd 	= i.insp_item_cd
+	  and d.prdtn_corp_id   = sii.prdtn_corp_id 
+	  and d.fac_id 			= sii.fac_id
+	  and d.smp_cd 			= sii.smp_cd
+	  and r.insp_item_cd 	= sii.insp_item_cd
+	  and sii.activ_yn 		= 'Y'
+	  and sii.frml_no 		= fm.frml_no(+)
+	  and nvl(r.insp_user_id,#{userId})	= u1.user_id(+)
+	  and m.reg_user_id 	= u2.user_id(+)
+	  and m.smp_insp_tp_cd	= '0401' /*검사구분[0102:수입,0401:물성,0402:외관]*/
+	  and m.prdtn_corp_id   = #{prdtnCorpId}
+	  and m.fac_id 			= #{facId}
+	  <if test='inspTpCd != null and inspTpCd != ""'>
+	  and m.insp_tp_cd		= #{inspTpCd}		/*검사구분*/
+	  </if>
+	  <if test='inspDtlStatus != null and inspDtlStatus != ""'>
+	  and d.insp_dtl_status = #{inspDtlStatus}	/*진행상태*/
+	  </if>
+	  <if test='inspRegNm != null and inspRegNm != ""'>
+	  and m.insp_reg_nm  	like '%'||#{inspRegNm}||'%'	/*검사명*/
+	  </if>
+	  <if test='regUserNm != null and regUserNm != ""'>
+	  and u2.user_nm    	like '%'||#{regUserNm}||'%' 	/*등록자*/
+	  </if>
+	  <if test='regUserId != null and regUserId != ""'>
+	  and m.reg_user_id 	= #{regUserId}
+	  </if>
+	  <if test='prdtnDt != null and prdtnDt != ""'>
+	  and d.prdtn_dt		=  #{prdtnDt}	  /*생산일자*/
+	  </if>
+	  <if test='(regDateFr != null and regDateFr != "") or (regDateTo != null and regDateTo != "")'>
+	  and m.reg_date		between nvl(#{regDateFr},'00010101') and nvl(#{regDateTo},'99991231')  /*등록일자*/
+	  </if>
+	  <if test='smpTpCd != null and smpTpCd != ""'>
+	  and m.smp_tp_cd     	= #{smpTpCd}  	  /*시료유형*/
+	  </if>
+	  <if test='smpGrpCd != null and smpGrpCd != ""'>
+	  and m.smp_grp_cd    	= #{smpGrpCd}     /*시료그룹*/
+	  </if>
+	  <if test='smpCd != null and smpCd != ""'>
+	  and d.smp_cd        	= #{smpCd}        /*시료*/
+	  </if>
+	  <if test='inspItemCd != null and inspItemCd != ""'>
+	  and r.insp_item_cd  	= #{inspItemCd}   /*검사항목*/
+	  </if>
+	  <if test='lotNo != null and lotNo != ""'>
+	  and d.lot_no        	= #{lotNo}        /*Lot No.*/
+	  </if>
+	  <if test='doffNo != null and doffNo != ""'>
+	  and d.doff_no       	= #{doffNo}       /*Doff*/
+	  </if>
+	  <if test='posNo != null and posNo != ""'>
+	  and pd.pos_no       	= #{posNo}        /*Pos/End*/
+	  </if>
+	  order by 4,5,6,7,8,9,nvl(regexp_replace(pd.pos_no,'[^0-9]',''),'0')::numeric,11
+</select>
+
+<update id="updateProcessInspRstInput" parameterType="com.qms.qmmi.vo.ProcessInspRegVO">
+	update tbl_qm_insp_rst /* 물성검사결과입력 : 물성검사결과 수정 [ProcessInspRstInputMapper.updateProcessInspRstInput] CreatedBy 김범수*/
+	set  modifier_id		 = #{modifierId}
+		,modified_time       = sysdate
+		,modifier_program_id = #{modifierProgramId}
+		,insp_val			 = #{inspVal}     /*분석값*/
+		,rst_val             = #{rstVal}      /*결과값*/
+		,insp_item_rst       = #{inspItemRst} /*합부판정*/
+		,reinsp_val          = #{reinspVal}   /*재분석값*/
+		,insp_user_id        = #{inspUserId}  /*검사원*/
+		,insp_dt             = replace(#{inspDt},'-','') /*검사일*/
+	where prdtn_corp_id = #{prdtnCorpId} /*생산법인ID*/
+	  and fac_id 		= #{facId}       /*공장ID*/
+	  and insp_reg_no   = #{inspRegNo}   /*검사등록번호*/
+	  and insp_smp_no   = #{inspSmpNo}	 /*시료별검사번호*/
+	  and pos_no        = #{posNo}       /*Position No*/
+	  and insp_item_cd  = #{inspItemCd}  /*검사항목*/
+</update>
+
+<update id="updateProcessInspPosDtlRst" parameterType="com.qms.qmmi.vo.ProcessInspRegVO">
+	update tbl_qm_insp_pos_dtl d /* 물성검사결과입력 : 검사POS상세 합부판정 수정 [ProcessInspRstInputMapper.updateProcessInspPosDtlRst] CreatedBy 김범수*/
+	set  d.modifier_id        = #{modifierId}
+		,d.modified_time       = sysdate
+		,d.modifier_program_id = #{modifierProgramId}
+		,d.insp_pos_rst = (select min(nvl(insp_item_rst,'')) from tbl_qm_insp_rst r
+						   where r.prdtn_corp_id = d.prdtn_corp_id
+						     and r.fac_id        = d.fac_id
+						     and r.insp_reg_no   = d.insp_reg_no
+						     and r.insp_smp_no   = d.insp_smp_no
+						     and r.pos_no        = d.pos_no )
+	where d.prdtn_corp_id = #{prdtnCorpId} /*생산법인ID*/
+	  and d.fac_id        = #{facId}       /*공장ID*/
+	  and d.insp_reg_no   = #{inspRegNo}   /*검사등록번호*/
+	  and d.insp_smp_no   = #{inspSmpNo}   /*시료별검사번호*/
+	  and d.pos_no        = #{posNo}
+</update>
+
+<update id="updateProcessInspDtlStatPos" parameterType="com.qms.qmmi.vo.ProcessInspRegVO">
+	update tbl_qm_insp_dtl d /* 물성검사결과입력 : 검사상세 진행상태 수정 [ProcessInspRstInputMapper.updateProcessInspDtlStatPos] CreatedBy 김범수*/
+	set  d.modifier_id        = #{modifierId}
+		,d.modified_time       = sysdate
+		,d.modifier_program_id = #{modifierProgramId}
+		,d.insp_dtl_status = ( select (case when min(nvl(pd.insp_pos_rst,'')) = '' then 'A' else 'B' end)
+								from tbl_qm_insp_pos_dtl pd
+							   where pd.prdtn_corp_id = d.prdtn_corp_id
+							     and pd.fac_id        = d.fac_id
+							     and pd.insp_reg_no   = d.insp_reg_no
+							     and pd.insp_smp_no   = d.insp_smp_no)
+	where d.prdtn_corp_id = #{prdtnCorpId} /*생산법인ID*/
+	  and d.fac_id        = #{facId}       /*공장ID*/
+	  and d.insp_reg_no   = #{inspRegNo}   /*검사등록번호*/
+	  and d.insp_smp_no   = #{inspSmpNo}   /*시료별검사번호*/
+</update>
+
+<update id="updateProcessInspDtlStat" parameterType="com.qms.qmmi.vo.ProcessInspRegVO">
+	update tbl_qm_insp_dtl d /* 물성검사결과입력 : 검사상세 진행상태 수정 [ProcessInspRstInputMapper.updateProcessInspDtlStat] CreatedBy 김범수*/
+	set  d.modifier_id         = #{modifierId}
+		,d.modified_time       = sysdate
+		,d.modifier_program_id = #{modifierProgramId}
+		,d.insp_dtl_status 	   = #{inspDtlStatus}	/*검사상세상태*/
+	where d.prdtn_corp_id = #{prdtnCorpId} /*생산법인ID*/
+	  and d.fac_id        = #{facId}       /*공장ID*/
+	  and d.insp_reg_no   = #{inspRegNo}   /*검사등록번호*/
+	  and d.insp_smp_no   = #{inspSmpNo}   /*시료별검사번호*/
+</update>
+
+<update id="updateProcessInspMastStat" parameterType="com.qms.qmmi.vo.ProcessInspRegVO">
+	update tbl_qm_insp_mast m /* 물성검사결과입력 : 검사 마스터 진행상태 수정 [ProcessInspRstInputMapper.updateProcessInspMastStat] CreatedBy 김범수*/
+	 set m.modifier_id         = #{modifierId}
+		,m.modified_time       = sysdate
+		,m.modifier_program_id = #{modifierProgramId}
+		,m.insp_status = ( select min(insp_dtl_status) from tbl_qm_insp_dtl d
+ 						where m.prdtn_corp_id = d.prdtn_corp_id
+					      and m.fac_id        = d.fac_id
+					      and m.insp_reg_no   = d.insp_reg_no)
+	where m.prdtn_corp_id = #{prdtnCorpId} /*생산법인ID*/
+	  and m.fac_id        = #{facId}       /*공장ID*/
+	  and m.insp_reg_no   = #{inspRegNo}   /*검사등록번호*/
+</update>
+
+<select id="getProcessInspRstInputItemCdList" parameterType="com.qms.qmmi.vo.ProcessInspRstInputVO" resultMap="resultMap">
+	select /* 물성검사결과입력 : 수정항목 관련 검사항목 조회  [ProcessInspRstInputMapper.getProcessInspRstInputItemCdList] CreatedBy 김범수*/
+		 r.prdtn_corp_id 
+		,r.fac_id 
+		,r.insp_reg_no 
+		,r.insp_smp_no 
+		,r.pos_no 
+		,r.rst_val 
+		,i.frml_no 
+		,r.insp_val
+		,r.reinsp_val
+		,i.mgmt_stnd_tp_cd 			/*관리기준유형코드*/
+		,r.spec_max 
+		,r.spec_min 
+		,r.insp_item_cd 
+	from qms.tbl_qm_insp_rst r
+		,qms.tbl_qm_insp_dtl d
+		,qms.tbl_qm_smp_insp_item i 
+	where r.prdtn_corp_id 	= r.prdtn_corp_id 
+	  and r.fac_id 			= r.fac_id 
+	  and r.insp_reg_no 	= d.insp_reg_no 
+	  and r.insp_smp_no 	= d.insp_smp_no 
+	  and d.prdtn_corp_id 	= i.prdtn_corp_id 
+	  and d.fac_id 			= i.fac_id 
+	  and d.smp_cd 			= i.smp_cd 
+	  and r.insp_item_cd 	= i.insp_item_cd 
+	  and i.activ_yn 		= 'Y'
+	  and r.prdtn_corp_id 	= #{prdtnCorpId} /*생산법인ID*/
+	  and r.fac_id 			= #{facId}       /*공장ID*/
+	  and r.insp_reg_no 	= #{inspRegNo}   /*검사등록번호*/
+	  and r.insp_smp_no 	= #{inspSmpNo}   /*시료별검사번호*/
+	  and r.pos_no 			= #{posNo}		 /*Pos No*/
+</select>
+
+<select id="getProcessInspRstInputItemCdValJson" parameterType="com.qms.qmmi.vo.ProcessInspRstInputVO" resultType="java.lang.String">
+	select /* 물성검사결과입력 : 검사항목별 분석값 Json 조회  [ProcessInspRstInputMapper.getProcessInspRstInputItemCdValJson] CreatedBy 김범수*/
+		concat('{', string_agg(to_json(insp_item_cd) || ':' || nvl(insp_val,'null'), ','), '}') as itemCdValJson
+	 from tbl_qm_insp_rst
+	where prdtn_corp_id = #{prdtnCorpId} /*생산법인ID*/
+	  and fac_id 		= #{facId}       /*공장ID*/
+	  and insp_reg_no 	= #{inspRegNo}   /*검사등록번호*/
+	  and insp_smp_no 	= #{inspSmpNo}   /*시료별검사번호*/
+	  and pos_no 		= #{posNo}
+</select>
+
+</mapper>
