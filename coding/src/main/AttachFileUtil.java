@@ -1,6 +1,7 @@
 package main;
 
 import java.io.File;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,9 +29,9 @@ public class AttachFileUtil {
 		Boolean result = true;
 		String sAttachFileDir = System.getProperty("attachFileDir");	//첨부파일 경로
 		
-		FileOutputStream fos = null;
-		
-		try
+		try (
+				FileOutputStream fos = new FileOutputStream(sAttachFileDir + saveFileName);
+				)
 		{
 			File fileSaveDir = new File(sAttachFileDir);
 			
@@ -39,21 +40,13 @@ public class AttachFileUtil {
 				fileSaveDir.mkdirs();
 			}
 			
-			fos = new FileOutputStream(sAttachFileDir + saveFileName);
 			byte[] data = multipartFile.getBytes();
 			
 			fos.write(data);
 			
 		}catch (Exception e) {
-			logger.info(e.getMessage());
-			return false;
-		} finally {
-			try {
-				fos.close();
-			} catch (IOException e) {
-				logger.info(e.getMessage());
-			}
-		}
+			e.printStackTrace();
+		} 
 		
 		return result;
 	}
@@ -79,23 +72,17 @@ public class AttachFileUtil {
 		response.setHeader("Content-Transfer-Encoding", "binary");
 		response.setHeader("Content-Disposition", "attachment; filename="+fileName);
 		
-		FileInputStream  fis = null;
-		
-		try {
+		try (
+				FileInputStream  fis = new FileInputStream(fileToDownload); 
+				)
+		{
 			
-			fis = new FileInputStream(fileToDownload); 
 			IOUtils.copy(fis, response.getOutputStream());
 			response.flushBuffer(); 
 			
 		} catch (Exception e) {
-			logger.info(e.getMessage());
-		} finally {
-			try {
-				fis.close();
-			} catch (IOException e) {
-				logger.info(e.getMessage());
-			}
-		}
+			e.printStackTrace();
+		} 
 	}
 	
 	/**
@@ -124,8 +111,7 @@ public class AttachFileUtil {
 			}
 			
 		} catch (Exception e) {
-			logger.info(e.getMessage());
-			return false;
+			e.printStackTrace();
 		}
 		
 		return result;
