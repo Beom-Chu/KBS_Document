@@ -6,16 +6,18 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class BestAlbum {
 	
-	public static int[] solution(String[] genres, int[] plays) {
+	public static int[] solution(String[] genres, int[] plays) { /* 최후 */
 		
 		ArrayList<HashMap<String,Object>> music = new ArrayList<>();
-		ArrayList<HashMap<Integer,String>> liTot = new ArrayList<>();
 		HashMap<String,Integer> total = new HashMap<>();
+		TreeMap<Integer,String> top = new TreeMap<>((o1,o2)->o2.compareTo(o1));
+		ArrayList<Integer> listRtn = new ArrayList<>();
 		
-		
+		//음악별 컬렉션 설정, 장르별 재생수 합 구하기
 		for(int i=0; i<genres.length; i++) {
 			HashMap<String,Object> map = new HashMap<>();
 			map.put("no", i);
@@ -25,34 +27,40 @@ public class BestAlbum {
 			total.put(genres[i], total.getOrDefault(genres[i], 0)+plays[i]);
 		}
 		
+		//장르별 재생수 정렬
 		for(String gen : total.keySet()) {
-			HashMap<Integer,String> map = new HashMap<>();
-			map.put(total.get(gen), gen);
-			liTot.add(map);
+			top.put(total.get(gen), gen);
 		}
 		
+		//음악별 재생수 역순, 번호순 으로 정렬
 		Collections.sort(music, new Comparator<HashMap<String, Object>>() {
             public int compare(HashMap<String, Object> m1, HashMap<String, Object> m2) {
             	int i = ((Integer)m2.get("play")).compareTo((Integer)m1.get("play"));
-            	int j = ((Integer)m2.get("no")).compareTo((Integer)m1.get("no"));
+            	int j = ((Integer)m1.get("no")).compareTo((Integer)m2.get("no"));
             	return i==0?j:i;
             }
 		});
 		
-		for(HashMap hm : music) System.out.println(hm.get("no")+","+hm.get("genre")+","+hm.get("play")+","+hm.get("total"));
-		
-		ArrayList<Integer> list = new ArrayList<>();
-		int cnt = 0;
-		String bfGen = "";
-		for(HashMap hm : music) {
-
+		//앨범 수록곡 선별
+		for(Integer key : top.keySet()) {
+			int mCnt = 0; //음악 count
+			for(HashMap m : music) {
+				if(top.get(key).equals(m.get("genre"))) {
+					listRtn.add((int)m.get("no"));
+					mCnt++;
+				}
+				if(mCnt>1) break; //음악수 2건 이상일때 break;
+			}
 		}
-
 		
-		return new int[]{1,2};
+		//컬렉션=>배열 변환
+		int[] result = new int[listRtn.size()];
+		for(int i=0; i<listRtn.size(); i++) result[i] = listRtn.get(i);
+		
+		return result;
 	}
 	
-    public int[] solution2(String[] genres, int[] plays) {
+    public int[] solution2(String[] genres, int[] plays) { /* 최초 */
         List<Map<String,Object>> lmGenres = new ArrayList<Map<String,Object>>();
     	List<Integer> result = new ArrayList<>();
     	
@@ -114,9 +122,9 @@ public class BestAlbum {
 	
 	public static void main(String[] args) {
 		
-		String[] genres = {"classic", "pop", "classic", "classic", "pop"};
-		int[] plays = {500, 600, 150, 800, 2500};
-		//[4, 1, 3, 0]
+//		String[] genres = {"classic", "pop", "classic", "classic", "pop"};
+//		int[] plays = {500, 600, 150, 800, 2500};
+//		//[4, 1, 3, 0]
 		
 //		String[] genres = {"classic", "classic", "classic", "classic", "pop"};
 //		int[] plays = {500, 150, 800, 800, 2500};
@@ -130,9 +138,15 @@ public class BestAlbum {
 //		int[] plays = {40, 50, 40};
 //		//[1, 0];
 		
+		String[] genres = {"A", "A", "B", "A", "B", "B", "A", "A", "A", "A"};
+		int[] plays = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+		/*4, 5, 0, 1*/
+		
 		int[] rtn = solution(genres,plays);
-
-		System.out.println(rtn.toString());
+		
+		for(int i : rtn) System.out.print(i+" ");
+		
+		
 	}
 
 }
