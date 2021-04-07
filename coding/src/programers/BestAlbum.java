@@ -8,9 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.sun.javafx.binding.SelectBinding.AsInteger;
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
+
 public class BestAlbum {
 	
-	public static int[] solution(String[] genres, int[] plays) { /* 최후 */
+	 /* 최후 */
+	public int[] solution(String[] genres, int[] plays) {
 		
 		ArrayList<HashMap<String,Object>> music = new ArrayList<>();
 		HashMap<String,Integer> total = new HashMap<>();
@@ -60,7 +64,12 @@ public class BestAlbum {
 		return result;
 	}
 	
-    public int[] solution2(String[] genres, int[] plays) { /* 최초 */
+	
+	
+	
+	
+	/* 최초 */
+    public int[] solution2(String[] genres, int[] plays) { 
         List<Map<String,Object>> lmGenres = new ArrayList<Map<String,Object>>();
     	List<Integer> result = new ArrayList<>();
     	
@@ -113,36 +122,101 @@ public class BestAlbum {
         return answer;
     }
 
-
     class playCompare implements Comparator<Map<String, Object>>{
     	public int compare(Map<String, Object> m1, Map<String, Object> m2) {
 			return ((Integer) m2.get("plays")).compareTo((Integer) m1.get("plays"));
 		}
     }
+    
+    
+    
+    
+    
+    
+    
+    /* Music Class 활용 */
+    public int[] solution3(String[] genres, int[] plays) {
+    	
+    	ArrayList<Music> mList = new ArrayList<>();
+    	HashMap<String,Integer> total = new HashMap<>();
+    	ArrayList<Integer> result = new ArrayList<>();
+    	
+    	for(int i=0; i<genres.length; i++) {
+    		Music music = new Music(i,plays[i],genres[i]);
+    		mList.add(music);
+    		total.put(genres[i], total.getOrDefault(genres[i],0)+plays[i]);
+    	}
+    	
+    	for(Music m : mList) m.total = total.get(m.genre);
+    	
+    	Collections.sort(mList,new comparePlay());
+    	
+    	int mCnt = 0;
+    	String bfGenre = "";
+		for(Music m : mList) {
+			
+			if(!bfGenre.equals(m.genre)) {
+				bfGenre = m.genre;
+				mCnt = 0;
+			}
+			
+			if(mCnt < 2) {
+				result.add(m.no);
+				mCnt++;
+			}
+		}
+
+//    	for(int i: result) System.out.print(i+" ");
+		
+    	return result.stream().mapToInt(i->i).toArray();
+    }
+    
+    class comparePlay implements Comparator<Music>{
+    	public int compare(Music m1, Music m2) {
+    		int i = m2.total - m1.total;
+    		int j = m2.play - m1.play;
+    		int k = m1.no - m2.no;
+    		return i==0 ? (j==0 ? k : j ) : i;
+    	}
+    }
+    
+    public class Music {
+    	int no;
+    	int play;
+    	String genre;
+    	int total;
+    	
+    	Music(int no, int play, String genre) {
+    		this.no = no;
+    		this.play = play;
+    		this.genre = genre;
+    	}
+    }
 	
 	public static void main(String[] args) {
 		
-//		String[] genres = {"classic", "pop", "classic", "classic", "pop"};
-//		int[] plays = {500, 600, 150, 800, 2500};
-//		//[4, 1, 3, 0]
+		String[] genres = {"classic", "pop", "classic", "classic", "pop"};
+		int[] plays = {500, 600, 150, 800, 2500};
+		/*[4, 1, 3, 0]*/
 		
 //		String[] genres = {"classic", "classic", "classic", "classic", "pop"};
 //		int[] plays = {500, 150, 800, 800, 2500};
-//		//[4, 2, 3];
+//		/*[4, 2, 3]*/
 				
 //		String[] genres = {"pop", "pop", "pop", "rap", "rap"};
 //		int[] plays = {45, 50, 40, 60, 70};
-//		//[1, 0, 4, 3];
+//		/*[1, 0, 4, 3]*/
 		
 //		String[] genres = {"pop", "pop", "pop"};
 //		int[] plays = {40, 50, 40};
-//		//[1, 0];
+//		/*[1, 0]*/
 		
-		String[] genres = {"A", "A", "B", "A", "B", "B", "A", "A", "A", "A"};
-		int[] plays = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-		/*4, 5, 0, 1*/
+//		String[] genres = {"A", "A", "B", "A", "B", "B", "A", "A", "A", "A"};
+//		int[] plays = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+//		/*0, 1, 2, 4*/
 		
-		int[] rtn = solution(genres,plays);
+		BestAlbum bestAlbum = new BestAlbum();
+		int[] rtn = bestAlbum.solution2(genres,plays);
 		
 		for(int i : rtn) System.out.print(i+" ");
 		
