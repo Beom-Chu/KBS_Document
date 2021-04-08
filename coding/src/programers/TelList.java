@@ -1,7 +1,7 @@
 package programers;
 
 import java.util.Arrays;
-
+//전화번호 목록
 public class TelList {
 	
 	public static boolean solution(String[] phone_book) {

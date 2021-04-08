@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 //완주하지 못한 선수
-
 public class NotFinishedPlayer {
 
 	public static String solution(String[] participant, String[] completion) {
