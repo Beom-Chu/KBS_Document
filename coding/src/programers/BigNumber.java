@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/* 가장 큰 수*/
 public class BigNumber {
 	
 	
