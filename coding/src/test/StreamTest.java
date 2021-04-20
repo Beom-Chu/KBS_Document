@@ -6,8 +6,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+// TODO: Auto-generated Javadoc
 public class StreamTest {
 
+	/**
+	 * The main method.
+	 *
+	 * @param args the arguments
+	 */
 	public static void main(String[] args) {
 		
 		int[] arrInt = {3,2,5,1,4};
@@ -31,10 +37,17 @@ public class StreamTest {
 //		System.out.println(streamTest.sum(arrInt));
 		
 		int[] rtnSortInt = streamTest.sortInt(liInt);
+		List<Integer> rtnFiltUpInt = streamTest.filterUpLiInt(liInt, 5);
+		
+		// 필터링
+		String[] sFiltStWith = liStr.stream().filter((s) -> {
+			return s.startsWith("S");
+		}).toArray(String[]::new);
+		
 		
 		
 		//출력
-		streamTest.out(rtnSortInt);
+//		streamTest.out(sFiltStWith);
 	}
 	
 	
@@ -81,6 +94,8 @@ public class StreamTest {
 	
 	/**
 	 *  중복값 제거.
+	 *
+	 * @param <T> 　
 	 * @param li 　
 	 * @return List<T>
 	 */
@@ -91,8 +106,10 @@ public class StreamTest {
 	
 	/**
 	 *  List 전체에 숫자 더하기.
-	 * @param <T> 　
+	 *
 	 * @param li void
+	 * @param sumI 　
+	 * @return List<Integer> 　
 	 */
 	public List<Integer> plusAll(List<Integer> li, int sumI) {
 		
@@ -108,7 +125,6 @@ public class StreamTest {
 		return li.stream().sorted().mapToInt(i->i).toArray();
 	}
 	
-	
 	/**
 	 * 배열 전체 합.
 	 * @param arrInt 　
@@ -119,6 +135,24 @@ public class StreamTest {
 	}
 	
 	
+	/**
+	 * 배열값 up 이상 필터링
+	 * @param liInt 　
+	 * @param up 　
+	 * @return List<Integer> 　
+	 */
+	public List<Integer> filterUpLiInt(List<Integer> liInt, int up){
+		return liInt.stream().filter(i->i>up).collect(Collectors.toList());
+	}
+	
+	
+	
+	/**
+	 * Out.
+	 *
+	 * @param <T> 　
+	 * @param li 　
+	 */
 	//List 값 출력
 	public <T> void out(List<T> li) {
 		
@@ -126,12 +160,23 @@ public class StreamTest {
 		System.out.println();
 	}
 	
+	/**
+	 * Out.
+	 *
+	 * @param <T> 　
+	 * @param arr 　
+	 */
 	//배열 값 출력
 	public <T> void out(T[] arr){
 		for(T e : arr) System.out.print(e +" ");
 		System.out.println();
 	}
 	
+	/**
+	 * Out.
+	 *
+	 * @param arrI 　
+	 */
 	//배열 int 값 출력
 	private void out(int[] arrI) {
 		for(int e : arrI) System.out.print(e +" ");
