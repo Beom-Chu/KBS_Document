@@ -12,20 +12,15 @@ A가 B보다 작은 경우에는 '<'를 출력한다.
 A와 B가 같은 경우에는 '=='를 출력한다.*/
 package baekjoon;
 
-import java.util.Scanner;
+import java.util.*;
 
 public class CompareTwoNumbers {
 
 	public static void main(String[] args) {
-		try(
-				Scanner sc = new Scanner(System.in);
-		){
+		try(Scanner sc = new Scanner(System.in)){
 			int A = sc.nextInt();
 			int B = sc.nextInt();
-			
-			if(A<B) System.out.println("<");
-			else if(A>B) System.out.println(">");
-			else System.out.println("==");
+			System.out.println( A<B ? "<" : (A>B ? ">" : "==" ));
 		}
 	}
 }
