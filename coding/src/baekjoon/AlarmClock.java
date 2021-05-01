@@ -40,12 +40,16 @@ public class AlarmClock {
 
 	public static void main(String[] args) {
 		try(Scanner sc = new Scanner(System.in)){
+			
 			int h = sc.nextInt();
 			int m = sc.nextInt();
+			
 			Calendar cal = Calendar.getInstance();
+			
 			cal.set(Calendar.HOUR_OF_DAY, h);
 			cal.set(Calendar.MINUTE, m);
 			cal.add(Calendar.MINUTE, -45);
+			
 			System.out.println(cal.get(Calendar.HOUR_OF_DAY)+" "+cal.get(Calendar.MINUTE));
 		}
 	}

@@ -23,23 +23,25 @@ public class Factorial {
 
 	public static void main(String[] args) {
 		long fr = System.currentTimeMillis();
+		
 		try(Scanner sc = new Scanner(System.in)){
 			
 //			int N = sc.nextInt();
-//			Factorial fac = new Factorial();
-//			System.out.println(fac.factorial(N));
+//			System.out.println(factorial(N));
 			/* 재귀함수가 속도가 더 느림 */
 			
 			int N = sc.nextInt();
 			int rtn = 1;
 			for(int i=2; i<=N; i++) rtn *= i;
+			
 			System.out.println(rtn);
 		}
 		System.out.println(System.currentTimeMillis()-fr);
 	}
 	
-	public int factorial(int N) {
+	static public int factorial(int N) {
 		if(N==1) return 1;
+		
 		return N * factorial(N-1);
 	}
 }
