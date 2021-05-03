@@ -142,7 +142,7 @@ class Solution5 {
     		if(max<i) max = i;
     		if(min>i) min = i;
     	}
-    	System.out.println(String.format("%d %d", sum-max, sum-min));
+    	System.out.printf("%d %d", sum-max, sum-min);
     }
 
     private static final Scanner scanner = new Scanner(System.in);

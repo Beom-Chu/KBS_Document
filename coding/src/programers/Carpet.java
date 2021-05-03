@@ -40,7 +40,7 @@ public class Carpet {
 		Carpet carpet = new Carpet();
 		int[] rtn = carpet.solution(colors[0], colors[1]);
 		
-		System.out.println(String.format("[%s , %s]", rtn[0],rtn[1]));
+		System.out.printf("[%s , %s]", rtn[0],rtn[1]);
 	}
 
 }
