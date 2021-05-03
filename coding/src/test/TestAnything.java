@@ -9,8 +9,7 @@ class TestAnything {
 
 
 		System.out.println("20년4분기".length());
-		
-		/* Test commit */
+
     }
 }
 
