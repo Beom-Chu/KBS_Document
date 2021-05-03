@@ -24,9 +24,9 @@ public class PropertiesDemo {
 	}
 
 	private void loadProperty() throws IOException {
-		FileInputStream inputStream = new FileInputStream(FilePath);
-		properties.load(new BufferedInputStream(inputStream));
-		inputStream.close();
+		try(FileInputStream inputStream = new FileInputStream(FilePath)){
+			properties.load(new BufferedInputStream(inputStream));
+		}
 	}
 
 	private void createFile() throws IOException {
@@ -36,15 +36,15 @@ public class PropertiesDemo {
 	}
 	
 	private void newProperty() throws Exception {
-		FileOutputStream stream = new FileOutputStream(FilePath);
-		properties.store(stream, "프로퍼티 파일");
-		stream.close();
+		try(FileOutputStream stream = new FileOutputStream(FilePath)){
+			properties.store(stream, "프로퍼티 파일");
+		}
 	}
 	
 	private void newPropertyBackup() throws Exception {
-		FileOutputStream stream = new FileOutputStream(FilePath+"_"+System.currentTimeMillis());
-		properties.store(stream, "프로퍼티 파일");
-		stream.close();
+		try(FileOutputStream stream = new FileOutputStream(FilePath+"_"+System.currentTimeMillis())){
+			properties.store(stream, "프로퍼티 파일");
+		}
 	}
 	
 	private void setProperties(List<HashMap<String,String>> listMap) {
