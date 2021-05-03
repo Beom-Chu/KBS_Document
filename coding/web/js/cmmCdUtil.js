@@ -1,8 +1,4 @@
 	
-$(document).ready(function() {
-
-});
-	
 //공통코드 유틸	
 var cmmCdUtil = {
 	
