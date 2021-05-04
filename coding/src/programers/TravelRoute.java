@@ -45,7 +45,6 @@ public class TravelRoute {
         });
         
         //ICN 에서 출발 
-        route.add("ICN");
         travel("ICN", tickets, chk, route);
         
         return route.stream().toArray(String[]::new);
@@ -53,22 +52,31 @@ public class TravelRoute {
 	
 	public void travel(String start, String[][] tickets, boolean[] chk, List<String> route) {
 		
+		route.add(start);
+		
 		for(int i=0; i<tickets.length; i++) {
 			
 			if(!chk[i]) {
 				
 				if(tickets[i][0].compareTo(start)==0) {
 					
-					chk[i] = route.add(tickets[i][1]);
+					chk[i] = true;
 					travel(tickets[i][1], tickets, chk, route);
 				}
 			}
 		}
 	}
 	
+	
+	
 	public static void main(String[] args) {
+		TravelRoute tr = new TravelRoute();
 		
-
+//		String[] rtn = tr.solution(new String[][]{{"ICN", "JFK"}, {"HND", "IAD"}, {"JFK", "HND"}});
+//		String[] rtn = tr.solution(new String[][]{{"ICN", "SFO"}, {"ICN", "ATL"}, {"SFO", "ATL"}, {"ATL", "ICN"}, {"ATL","SFO"}});
+		String[] rtn = tr.solution(new String[][]{{"ICN", "SFO"}, {"ICN", "ATL"}, {"SFO", "ICN"}}); /*ICN,SFO,ICN,ATL*/
+		
+		for(String s : rtn) System.out.println(s);
 	}
 
 }
