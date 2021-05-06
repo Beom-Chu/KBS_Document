@@ -31,42 +31,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TravelRoute {
-
+public class TravelRoute2 {
+	
+	String route = "";
+	List<String> rtn = new ArrayList<>();
+	
 	public String[] solution(String[][] tickets) {
 
 		boolean[] chk = new boolean[tickets.length];
-        List<String> route = new ArrayList<String>();
         
         //출발지, 도착지 순으로 정렬
         Arrays.sort(tickets, (String[] o1, String[] o2) -> o1[0].compareTo(o2[0]));
+
+        travel("ICN", route, tickets, 1);
+
         
-        //ICN 에서 출발 
-        route.add("ICN");
-        travel("ICN", tickets, chk, route);
-        
-        return route.stream().toArray(String[]::new);
+        return new String[] {};
     }
 	
-	public void travel(String start, String[][] tickets, boolean[] chk, List<String> route) {
+	public void travel(String start, String route, String[][] tickets, int cnt) {
 		
-		for(int i=0; i<tickets.length; i++) {
-			
-			if(!chk[i]) {
-				
-				if(tickets[i][0].compareTo(start)==0) {
-					
-					chk[i] = route.add(tickets[i][1]);
-					travel(tickets[i][1], tickets, chk, route);
-				}
-			}
-		}
+		route += start+",";
+		
+		
 	}
 	
 	
 	
 	public static void main(String[] args) {
-		TravelRoute tr = new TravelRoute();
+		TravelRoute2 tr = new TravelRoute2();
 		
 //		String[] rtn = tr.solution(new String[][]{{"ICN", "JFK"}, {"HND", "IAD"}, {"JFK", "HND"}});
 		String[] rtn = tr.solution(new String[][]{{"ICN", "SFO"}, {"ICN", "ATL"}, {"SFO", "ATL"}, {"ATL", "ICN"}, {"ATL","SFO"}});
