@@ -100,7 +100,7 @@ public class PriorityCalculator {
 				
 				for(int i=1; i<operator.size(); i++) {
 					
-					String oper = operator.get(i);)
+					String oper = operator.get(i);
 					BigDecimal calcNum = calc(oper,numbers.get(i),numbers.get(i+1));
 					
 					/* 우선순위 설정 */
