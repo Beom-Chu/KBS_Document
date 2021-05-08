@@ -66,11 +66,13 @@ import java.util.List;
 
 public class PressTheKeypad {
 
+	StringBuffer answer;
+	
     public String solution(int[] numbers, String hand) {
     	
-        StringBuffer answer = new StringBuffer();
-        Finger rightFinger = new Finger("right");
-        Finger leftFinger = new Finger("left");
+        answer = new StringBuffer();
+        Finger leftFinger = new Finger("L");
+        Finger rightFinger = new Finger("R");
         List<Keypad> keypads = new ArrayList<>();
         
         /*키패드 위치 설정*/
@@ -81,17 +83,17 @@ public class PressTheKeypad {
         	}
         
         
-        for(int i=0; i<numbers.length; i++) {
-        	int num = numbers[i];
+        for(int num : numbers) {
+        	
         	Keypad keypad = keypads.get(num);
         	
         	if(num==1 || num==4 || num==7) {
         		
-        		useLeftHand(answer, leftFinger, keypad);
+        		leftFinger.press(keypad);
         	
         	} else if(num==3 || num==6 || num==9) {
         		
-        		useRightHand(answer, rightFinger, keypad);
+        		rightFinger.press(keypad);
         	
         	} else {
         		
@@ -100,16 +102,16 @@ public class PressTheKeypad {
         		
         		if(rightDiff < leftDiff) {
         			
-        			useRightHand(answer, rightFinger, keypad);
+        			rightFinger.press(keypad);
         			
         		} else if(rightDiff > leftDiff) {
         			
-        			useLeftHand(answer, leftFinger, keypad);
+        			leftFinger.press(keypad);
         			
         		} else {
         			
-        			if(hand.equals("right")) useRightHand(answer, rightFinger, keypad);
-        			else useLeftHand(answer, leftFinger, keypad);
+        			if(hand.equals("right")) rightFinger.press(keypad);
+        			else leftFinger.press(keypad);
         			
         		}
         	}
@@ -120,15 +122,17 @@ public class PressTheKeypad {
 	
 
 	class Finger {
-		
+		String lr;
 		int x, y=3;
 		
-		public Finger(String hand){
-			if(hand.equals("right")) x = 2 ;
+		public Finger(String lr){
+			this.lr = lr;
+			if(lr.equals("R")) x = 2 ;
 			else x = 0;
 		}
 		
-		public void setPosition(Keypad keypad) {
+		public void press(Keypad keypad) {
+			answer.append(lr);
 			this.x = keypad.x; 
 			this.y = keypad.y;
 		}
@@ -148,18 +152,7 @@ public class PressTheKeypad {
 		return Math.abs(finger.x - keypad.x) + Math.abs(finger.y - keypad.y);
 	}
 	
-	public void useLeftHand(StringBuffer answer, Finger finger, Keypad keypad) {
-		useHand(answer, finger, keypad, "L");
-	}
-
-	public void useRightHand(StringBuffer answer, Finger finger, Keypad keypad) {
-		useHand(answer, finger, keypad, "R");
-	}
 	
-	public void useHand(StringBuffer answer, Finger finger, Keypad keypad, String lr) {
-		answer.append(lr);
-		finger.setPosition(keypad);
-	}
 	
 	public static void main(String[] args) {
 		
