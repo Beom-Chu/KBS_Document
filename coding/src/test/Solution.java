@@ -507,11 +507,6 @@ class Solution11 {
         String[] cItems = scanner.nextLine().split(" ");
         scanner.skip("(\r\n|[\n\r\u2028\u2029\u0085])?");
 
-        // for (int i = 0; i < m; i++) {
-        //     int cItem = Integer.parseInt(cItems[i]);
-        //     c[i] = cItem;
-        // }
-
         int result = flatlandSpaceStations(n, cItems);
 
         bufferedWriter.write(String.valueOf(result));

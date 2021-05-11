@@ -1,4 +1,4 @@
-/* 여행경
+/* 여행경로 
  * 문제 설명
 주어진 항공권을 모두 이용하여 여행경로를 짜려고 합니다. 항상 "ICN" 공항에서 출발합니다.
 
@@ -33,27 +33,49 @@ import java.util.List;
 
 public class TravelRoute2 {
 	
-	String route = "";
 	List<String> rtn = new ArrayList<>();
+	String[][] tickets;
 	
 	public String[] solution(String[][] tickets) {
-
-		boolean[] chk = new boolean[tickets.length];
+		
+		this.tickets = tickets;
+		boolean[] visit = new boolean[tickets.length];
+		String route = "";
         
-        //출발지, 도착지 순으로 정렬
-        Arrays.sort(tickets, (String[] o1, String[] o2) -> o1[0].compareTo(o2[0]));
-
-        travel("ICN", route, tickets, 1);
-
+        travel("ICN", route, visit, 1);
         
-        return new String[] {};
+        //모든 경로 알파벳순 정렬
+        rtn.sort((o1,o2) -> o1.compareTo(o2));
+        
+        return rtn.get(0).split(" ");
     }
 	
-	public void travel(String start, String route, String[][] tickets, int cnt) {
+	public void travel(String location, String route, boolean[] visit, int cnt) {
 		
-		route += start+",";
+		route += location+" ";
 		
+		if(cnt > tickets.length) {
+			rtn.add(route);
+			return;
+		}
 		
+		for(int i=0; i<tickets.length; i++) {
+			
+			if(!visit[i]) {
+				
+				String from = tickets[i][0];
+				String to = tickets[i][1];
+				
+				if(location.equals(from)) {
+					
+					visit[i] = true;
+					travel(to, route, visit, cnt+1);
+					
+					//현 위치에서 방문 할 수 있는 다른 곳도 찾기 위함
+					visit[i] = false;
+				}
+			}
+		}
 	}
 	
 	
