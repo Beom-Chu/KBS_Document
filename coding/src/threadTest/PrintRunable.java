@@ -1,15 +1,14 @@
-package Thread;
+package threadTest;
 
-public class PrintThread extends Thread{
+public class PrintRunable implements Runnable {
 	String str;
-	
-	public PrintThread(String str) {
+	public PrintRunable(String str) {
 		this.str = str;
 	}
 	
 	public void printLine() {
 		for(int i=0; i<10; i++) {
-			System.out.println("PrintThread:"+str);
+			System.out.println("PrintRunable:"+str);
 			try {
 				Thread.sleep((int)(Math.random()*100));
 			} catch (InterruptedException e) {
@@ -18,9 +17,10 @@ public class PrintThread extends Thread{
 		}
 		
 	}
-
+	
 	@Override
 	public void run() {
 		printLine();
 	}
+
 }

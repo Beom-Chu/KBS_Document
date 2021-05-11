@@ -1,4 +1,4 @@
-package Thread.sync;
+package threadTest.sync;
 
 public class MusicPlayerMain {
 

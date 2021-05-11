@@ -1,10 +1,10 @@
-package Thread;
+package threadTest;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class threadMain {
+public class ThreadMain {
 
 	public static void main(String[] args) throws Exception{
 		
