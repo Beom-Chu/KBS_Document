@@ -34,7 +34,7 @@
 	   and d.insp_smp_no 	= r.insp_smp_no
 	   and m.prdtn_corp_id 	= #{prdtnCorpId}	
 	   and m.fac_id  		= #{facId}
-	   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+	   and m.smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 	   and d.insp_dtl_status= 'C'		/*진행상태[C:판정확정]*/
 	   and d.prdtn_dt is not null
 	   and m.insp_tp_cd 	= #{inspTpCd}	-- 검사구분
@@ -75,7 +75,7 @@
 			,ii.ship_spec_min
 			,ii.sort_no 
 			<foreach collection="paramPrdtnDt"  item="item" open="" close="" separator="" index="index">
-			,(case when d.prdtn_dt = #{item} then decode(r.rst_val,'',null,r.rst_val) else null end)::numeric as "${item}"
+			,(case when d.prdtn_dt = #{item} then nvl(r.rst_val,null) else null end)::numeric as "${item}"
 			</foreach>
 		 from tbl_qm_insp_mast m 
 			, tbl_qm_insp_dtl d
@@ -88,6 +88,7 @@
 		  and d.prdtn_corp_id 	= r.prdtn_corp_id
 		  and d.fac_id 			= r.fac_id
 		  and d.insp_reg_no 	= r.insp_reg_no
+		  and d.insp_smp_no		= r.insp_smp_no
 		  and d.prdtn_corp_id 	= ii.prdtn_corp_id 
 		  and d.fac_id 			= ii.fac_id 
 		  and d.smp_cd 			= ii.smp_cd 
@@ -96,9 +97,10 @@
 		  and r.fac_id 			= i.fac_id 
 		  and r.insp_item_cd 	= i.insp_item_cd 
 		  and ii.activ_yn 		= 'Y'
+		  --and ii.report_use_yn  = 'Y' /*일보사용여부*/
 		  and m.prdtn_corp_id 	= #{prdtnCorpId}	
 		  and m.fac_id  		= #{facId}
-		  and m.smp_insp_tp_cd 	= '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		  and m.smp_insp_tp_cd 	in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 		  and d.insp_dtl_status	= 'C'		/*진행상태[C:판정확정]*/
 		  and d.prdtn_dt 		is not null
 		  and m.insp_tp_cd 		= #{inspTpCd}	-- 검사구분
@@ -126,7 +128,7 @@
 		,max(ship_spec_max) as "max"
 		,min(ship_spec_min) as "min"
 		<foreach collection="paramPrdtnDt"  item="item" open="" close="" separator="" index="index">
-		,round(avg("${item}"),2) as "${item}"
+		,fnc_insp_item_round_num(#{prdtnCorpId},#{facId},insp_item_cd,avg("${item}")) as "${item}"
 		</foreach>
 	 from tb t
 	group by insp_item_cd,insp_item_nm,uom_cd,sort_no
@@ -140,9 +142,7 @@
 			 d.prdtn_dt 
 			,d.doff_no 
 			<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
-			,(case when r.insp_item_cd = #{item} then decode(r.rst_val,'',null,r.rst_val) else null end)::numeric as "${item}"
-			,(case when r.insp_item_cd = #{item} then decode(r.spec_min,'',null,r.spec_min) else null end)::numeric as "${item}_min"
-			,(case when r.insp_item_cd = #{item} then decode(r.spec_max,'',null,r.spec_max) else null end)::numeric as "${item}_max"
+			,(case when r.insp_item_cd = #{item} then nvl(r.rst_val,null) else null end)::numeric as "${item}"
 			</foreach>
 		 from tbl_qm_insp_mast m
 			, tbl_qm_insp_dtl d
@@ -153,9 +153,10 @@
 		 and d.prdtn_corp_id 	= r.prdtn_corp_id
 		 and d.fac_id 			= r.fac_id
 		 and d.insp_reg_no 		= r.insp_reg_no
+		 and d.insp_smp_no		= r.insp_smp_no
 		 and m.prdtn_corp_id 	= #{prdtnCorpId}	
 		 and m.fac_id  			= #{facId}
-		 and m.smp_insp_tp_cd 	= '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		 and m.smp_insp_tp_cd 	in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 		 and d.insp_dtl_status	= 'C'		/*진행상태[C:판정확정]*/
 		 and d.prdtn_dt 		is not null
 		 and m.insp_tp_cd 		= #{inspTpCd}	-- 검사구분
@@ -180,9 +181,9 @@
 		,doff_no 	as "doffNo"
 		,to_char(to_date(prdtn_dt),'mm/dd')||' ('||doff_no||')' as "prdtnDtDoff"
 		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
-		,max("${item}") as "${item}"
-		,max("${item}_min") as "${item}_min"
-		,max("${item}_max") as "${item}_max"
+		,fnc_insp_item_round_num(#{prdtnCorpId},#{facId},#{item},avg("${item}"))::numeric as "${item}"
+		,fnc_insp_item_round_num(#{prdtnCorpId},#{facId},#{item},min("${item}"))::numeric as "${item}_min"
+		,fnc_insp_item_round_num(#{prdtnCorpId},#{facId},#{item},max("${item}"))::numeric as "${item}_max"
 		</foreach>
 	 from tb t
 	group by prdtn_dt,doff_no

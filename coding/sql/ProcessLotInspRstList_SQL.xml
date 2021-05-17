@@ -36,7 +36,7 @@
 	select /* Lot별 검사결과 조회 : 검사항목 Header 조회 [ProcessLotInspRstListMapper.getProcessLotInspRstListHeader] CreatedBy 김범수*/
 		 r.insp_item_cd
 		,i.insp_item_nm
-		,ii.sort_no 
+		,min(ii.sort_no) as sort_no
 	  from tbl_qm_insp_mast m 
 	     , tbl_qm_insp_dtl d
 	     , tbl_qm_insp_rst r 
@@ -56,9 +56,11 @@
 	   and d.fac_id 		= ii.fac_id 
 	   and d.smp_cd 		= ii.smp_cd 
 	   and r.insp_item_cd 	= ii.insp_item_cd
+	   and ii.activ_yn 		= 'Y'
+	   --and ii.report_use_yn = 'Y' /*일보사용여부*/
 	   and m.prdtn_corp_id 	= #{prdtnCorpId}	
 	   and m.fac_id  		= #{facId}
-	   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+	   and m.smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 	   and d.insp_dtl_status= 'C'	/*진행상태[C:판정확정]*/
 	   and m.insp_tp_cd 	= #{inspTpCd}  -- 검사구분
 	   and m.smp_tp_cd 		= #{smpTpCd}  -- 시료유형
@@ -74,8 +76,8 @@
 	   <if test='posNo != null and posNo != ""'>
 	   and r.pos_no 		= #{posNo}
 	   </if>
-	 group by r.insp_item_cd,i.insp_item_nm,ii.sort_no 
-	 order by ii.sort_no,r.insp_item_cd
+	 group by r.insp_item_cd,i.insp_item_nm
+	 order by sort_no,r.insp_item_cd
 </select>
 
 <select id="getProcessLotInspRstList" parameterType="HashMap" resultType="HashMap">
@@ -83,7 +85,7 @@
 	with smp_mgmt as ( /*시료관리*/
 		select * from tbl_qm_smp_mgmt
 		where use_yn 		 = 'Y'		/*사용여부*/
-		  and smp_insp_tp_cd = '0401'		/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		  and smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 		  and prdtn_corp_id  = #{prdtnCorpId}	/*법인ID*/
 		  and fac_id 		 = #{facId}			/*공장ID*/
 	),
@@ -103,6 +105,63 @@
 	),
 	cit as ( /*검사구분*/
 		select * from cmm_cd where cd_tp_id = 'INSP_TP'
+	),
+	insp as (
+		select 
+			 m.prdtn_corp_id 
+			,m.fac_id 
+			,m.insp_tp_cd 
+			,m.smp_tp_cd 
+			,m.smp_grp_cd 
+			,d.smp_cd 
+			,d.lot_no
+			,d.doff_no
+			,r.pos_no
+			,d.prdtn_dt
+			,r.insp_dt 
+			,m.insp_reg_no
+			,d.insp_smp_no 
+			<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+			,(case when r.insp_item_cd = #{item} then nvl(r.rst_val,null) else null end)::numeric as "${item}"
+			,(case when r.insp_item_cd = #{item} then nvl(r.insp_item_rst,null) else null end) as "iir_${item}"
+			,(case when r.insp_item_cd = #{item} then nvl(ii.ship_spec_min,null) else null end)::numeric as "${item}_min"
+			,(case when r.insp_item_cd = #{item} then nvl(ii.ship_spec_max,null) else null end)::numeric as "${item}_max"
+			</foreach>
+		  from tbl_qm_insp_mast m 
+		     , tbl_qm_insp_dtl d
+		     , tbl_qm_insp_rst r 
+		     , tbl_qm_smp_insp_item  ii
+		 where m.prdtn_corp_id 	= d.prdtn_corp_id
+		   and m.fac_id 		= d.fac_id
+		   and m.insp_reg_no 	= d.insp_reg_no
+		   and d.prdtn_corp_id 	= r.prdtn_corp_id
+		   and d.fac_id 		= r.fac_id
+		   and d.insp_reg_no 	= r.insp_reg_no
+		   and d.insp_smp_no 	= r.insp_smp_no
+		   and d.prdtn_corp_id 	= ii.prdtn_corp_id
+		   and d.fac_id			= ii.fac_id
+		   and d.smp_cd 		= ii.smp_cd
+		   and r.insp_item_cd 	= ii.insp_item_cd
+		   and ii.activ_yn 		= 'Y'
+		   --and ii.report_use_yn = 'Y' /*일보사용여부*/
+		   and m.prdtn_corp_id 	= #{prdtnCorpId}	
+		   and m.fac_id  		= #{facId}
+		   and m.smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
+		   and d.insp_dtl_status= 'C'	/*진행상태[C:판정확정]*/
+		   and m.insp_tp_cd 	= #{inspTpCd}  -- 검사구분
+		   and m.smp_tp_cd 		= #{smpTpCd}  -- 시료유형
+		   and m.smp_grp_cd 	= #{smpGrpCd}  -- 시료그룹
+		   and d.smp_cd 		= #{smpCd}  -- 시료
+		   and r.insp_dt 		between nvl(#{inspDtFr},'00010101') and nvl(#{inspDtTo},'99991231')  /*검사일자*/
+		   <if test='lotNo != null and lotNo != ""'>
+		   and d.lot_no 		= #{lotNo}
+		   </if>
+		   <if test='doffNo != null and doffNo != ""'>
+		   and d.doff_no 		= #{doffNo}
+		   </if>
+		   <if test='posNo != null and posNo != ""'>
+		   and r.pos_no 		= #{posNo}
+		   </if>
 	)
 	select 
 		 prdtn_corp_id 	as "prdtnCorpId"
@@ -120,60 +179,15 @@
 		,(select smp_nm from sm_g sg where sg.smp_cd = a.smp_grp_cd) 		 as "smpGrpNm"      /*시료그룹명*/
 		,(select smp_nm from sm_i si where si.smp_cd = a.smp_cd) 			 as "smpNm"         /*시료명*/
 		,(select cd_val_kr_nm from cit where cit.cd_val = a.insp_tp_cd) 	 as "inspTpNm"      /*검사구분명*/
+		,insp_reg_no	as "inspRegNo"
+		,insp_smp_no	as "inspSmpNo"
+		,nvl(regexp_replace(doff_no,'[^0-9]',''),'0')::numeric as doff_sort
+		,nvl(regexp_replace(pos_no,'[^0-9]',''),'0')::numeric as pos_sort
 		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
 		,max("${item}") as "${item}"
 		,max("iir_${item}") as "iir_${item}"
 		</foreach>
-		,insp_reg_no	as "inspRegNo"
-		,insp_smp_no	as "inspSmpNo"
-	from (
-		select 
-			 m.prdtn_corp_id 
-			,m.fac_id 
-			,m.insp_tp_cd 
-			,m.smp_tp_cd 
-			,m.smp_grp_cd 
-			,d.smp_cd 
-			,d.lot_no
-			,d.doff_no
-			,r.pos_no
-			,d.prdtn_dt
-			,r.insp_dt 
-			<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
-			,(case when r.insp_item_cd = #{item} then r.rst_val else null end) as "${item}"
-			,(case when r.insp_item_cd = #{item} then r.insp_item_rst else null end) as "iir_${item}"
-			</foreach>
-			,m.insp_reg_no
-			,d.insp_smp_no 
-		  from tbl_qm_insp_mast m 
-		     , tbl_qm_insp_dtl d
-		     , tbl_qm_insp_rst r 
-		 where m.prdtn_corp_id 	= d.prdtn_corp_id
-		   and m.fac_id 		= d.fac_id
-		   and m.insp_reg_no 	= d.insp_reg_no
-		   and d.prdtn_corp_id 	= r.prdtn_corp_id
-		   and d.fac_id 		= r.fac_id
-		   and d.insp_reg_no 	= r.insp_reg_no
-		   and d.insp_smp_no 	= r.insp_smp_no
-		   and m.prdtn_corp_id 	= #{prdtnCorpId}	
-		   and m.fac_id  		= #{facId}
-		   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
-		   and d.insp_dtl_status= 'C'	/*진행상태[C:판정확정]*/
-		   and m.insp_tp_cd 	= #{inspTpCd}  -- 검사구분
-		   and m.smp_tp_cd 		= #{smpTpCd}  -- 시료유형
-		   and m.smp_grp_cd 	= #{smpGrpCd}  -- 시료그룹
-		   and d.smp_cd 		= #{smpCd}  -- 시료
-		   and r.insp_dt 		between nvl(#{inspDtFr},'00010101') and nvl(#{inspDtTo},'99991231')  /*검사일자*/
-		   <if test='lotNo != null and lotNo != ""'>
-		   and d.lot_no 		= #{lotNo}
-		   </if>
-		   <if test='doffNo != null and doffNo != ""'>
-		   and d.doff_no 		= #{doffNo}
-		   </if>
-		   <if test='posNo != null and posNo != ""'>
-		   and r.pos_no 		= #{posNo}
-		   </if>
-	) a
+	from insp a
 	group by prdtn_corp_id 
 			,fac_id 
 			,insp_tp_cd 
@@ -187,7 +201,87 @@
 			,insp_dt
 			,insp_reg_no
 			,insp_smp_no
-	order by insp_tp_cd,smp_tp_cd,smp_grp_cd,smp_cd,lot_no,doff_no,pos_no,prdtn_dt,insp_dt
+	<if test='chkN == "Y"'>
+	union all 
+	select null,null,null,null,null,null,null,null,null,null,'1',null,null,null
+		,'N수',null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,count("${item}")
+		,null
+		</foreach>
+	from insp
+	</if>
+		<if test='chkAvg == "Y"'>
+	union all
+	select null,null,null,null,null,null,null,null,null,null,'2',null,null,null
+		,'Avg',null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,fnc_insp_item_round_num(max(prdtn_corp_id), max(fac_id), #{item}, avg("${item}"))
+		,null
+		</foreach>
+	from insp
+	</if>
+	<if test='chkMax == "Y"'>
+	union all
+	select null,null,null,null,null,null,null,null,null,null,'3',null,null,null
+		,'Max' ,null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,max("${item}")
+		,null
+		</foreach>
+	from insp
+	</if>
+	<if test='chkMin == "Y"'>
+	union all
+	select null,null,null,null,null,null,null,null,null,null,'4',null,null,null
+		,'Min',null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,min("${item}")
+		,null
+		</foreach>
+	from insp
+	</if>
+	<if test='chkR == "Y"'>
+	union all
+	select null,null,null,null,null,null,null,null,null,null,'5',null,null,null
+		,'R',null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,max("${item}")-min("${item}")
+		,null
+		</foreach>
+	from insp
+	</if>
+	<if test='chkCv == "Y"'>
+	union all
+	select null,null,null,null,null,null,null,null,null,null,'6',null,null,null
+		,'CV%',null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,pkg_qms_formula.fnc_get_cv(stddev("${item}"),avg("${item}"))
+		,null
+		</foreach>
+	from insp
+	</if>
+	<if test='chkSigma == "Y"'>
+	union all
+	select null,null,null,null,null,null,null,null,null,null,'7',null,null,null
+		,'Sigma',null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,fnc_insp_item_round_num(max(prdtn_corp_id),max(fac_id),#{item},stddev("${item}"))
+		,null
+		</foreach>
+	from insp
+	</if>
+	<if test='chkCpk == "Y"'>
+	union all
+	select null,null,null,null,null,null,null,null,null,null,'8',null,null,null
+		,'Cpk',null,null,null,null
+		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
+		,pkg_qms_formula.fnc_get_cpk(max("${item}_min"),max("${item}_max"),stddev("${item}"),avg("${item}"))
+		,null
+		</foreach>
+	from insp
+	</if>
+	order by "inspTpCd","smpTpCd","smpGrpCd","smpCd","lotNo",doff_sort,pos_sort,"prdtnDt","inspDt"
 </select>
 
 </mapper>

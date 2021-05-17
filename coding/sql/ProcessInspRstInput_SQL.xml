@@ -74,7 +74,7 @@
 	with smp_mgmt as ( /*시료관리*/
 		select * from tbl_qm_smp_mgmt
 		where use_yn 		 = 'Y'		/*사용여부*/
-		  and smp_insp_tp_cd = '0401'		/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		  and smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 		  and prdtn_corp_id  = #{prdtnCorpId}	/*법인ID*/
 		  and fac_id 		 = #{facId}			/*공장ID*/
 	),
@@ -175,7 +175,7 @@
 	  and sii.frml_no 		= fm.frml_no(+)
 	  and nvl(r.insp_user_id,#{userId})	= u1.user_id(+)
 	  and m.reg_user_id 	= u2.user_id(+)
-	  and m.smp_insp_tp_cd	= '0401' /*검사구분[0102:수입,0401:물성,0402:외관]*/
+	  and m.smp_insp_tp_cd	in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 	  and m.prdtn_corp_id   = #{prdtnCorpId}
 	  and m.fac_id 			= #{facId}
 	  <if test='inspTpCd != null and inspTpCd != ""'>
@@ -229,7 +229,7 @@
 		,modified_time       = sysdate
 		,modifier_program_id = #{modifierProgramId}
 		,insp_val			 = #{inspVal}     /*분석값*/
-		,rst_val             = #{rstVal}      /*결과값*/
+		,rst_val             = fnc_insp_item_round(#{prdtnCorpId},#{facId},#{inspItemCd},nvl(#{rstVal},null)) /*결과값*/
 		,insp_item_rst       = #{inspItemRst} /*합부판정*/
 		,reinsp_val          = #{reinspVal}   /*재분석값*/
 		,insp_user_id        = #{inspUserId}  /*검사원*/
@@ -339,7 +339,7 @@
 
 <select id="getProcessInspRstInputItemCdValJson" parameterType="com.qms.qmmi.vo.ProcessInspRstInputVO" resultType="java.lang.String">
 	select /* 물성검사결과입력 : 검사항목별 분석값 Json 조회  [ProcessInspRstInputMapper.getProcessInspRstInputItemCdValJson] CreatedBy 김범수*/
-		concat('{', string_agg(to_json(insp_item_cd) || ':' || nvl(insp_val,'null'), ','), '}') as itemCdValJson
+		concat('{', string_agg(to_json(insp_item_cd) || ':' || nvl(rst_val,'null'), ','), '}') as itemCdValJson
 	 from tbl_qm_insp_rst
 	where prdtn_corp_id = #{prdtnCorpId} /*생산법인ID*/
 	  and fac_id 		= #{facId}       /*공장ID*/

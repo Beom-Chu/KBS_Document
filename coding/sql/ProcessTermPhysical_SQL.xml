@@ -40,7 +40,7 @@
 	select /* (울산)Pos/End별 물성현황 : 검사항목 Header 조회 [ProcessTermPhysicalMapper.getProcessTermPhysicalHeader] CreatedBy 김범수*/
 		 r.insp_item_cd
 		,i.insp_item_nm
-		,ii.sort_no 
+		,min(ii.sort_no) as sort_no
 	  from tbl_qm_insp_mast m 
 	     , tbl_qm_insp_dtl d
 	     , tbl_qm_insp_rst r 
@@ -60,9 +60,11 @@
 	   and d.fac_id 		= ii.fac_id 
 	   and d.smp_cd 		= ii.smp_cd 
 	   and r.insp_item_cd 	= ii.insp_item_cd
+	   and ii.activ_yn 		= 'Y'
+	   --and ii.report_use_yn = 'Y' /*일보사용여부*/
 	   and m.prdtn_corp_id 	= #{prdtnCorpId}	
 	   and m.fac_id  		= #{facId}
-	   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+	   and m.smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 	   and d.insp_dtl_status= 'C'		/*진행상태[C:판정확정]*/
 	   and m.insp_tp_cd 	= #{inspTpCd}	-- 검사구분
 	   and m.smp_tp_cd 		= #{smpTpCd}	-- 시료유형
@@ -87,8 +89,8 @@
 	   <if test='inspItemRst != null and inspItemRst != ""'>
 	   and r.insp_item_rst = #{inspItemRst}
 	   </if>
-	 group by r.insp_item_cd,i.insp_item_nm,ii.sort_no 
-	 order by ii.sort_no,r.insp_item_cd
+	 group by r.insp_item_cd,i.insp_item_nm
+	 order by sort_no,r.insp_item_cd
 </select>
 
 <select id="getProcessTermPhysical" parameterType="HashMap" resultType="HashMap">
@@ -101,22 +103,30 @@
 			,r.pos_no
 			,d.yarn_spd 
 			<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
-			,(case when r.insp_item_cd = #{item} then decode(r.rst_val,'',null,r.rst_val) else null end)::numeric as "${item}"
-			,(case when r.insp_item_cd = #{item} then decode(r.spec_aim,'',null,r.spec_aim) else null end)::numeric as "${item}_spec_aim"
-			,(case when r.insp_item_cd = #{item} then decode(r.spec_max,'',null,r.spec_max) - decode(r.spec_min,'',null,r.spec_min) else null end)::numeric as "${item}_spec_range"
+			,max(case when r.insp_item_cd = #{item} then nvl(r.rst_val,null) else null end)::numeric as "${item}"
+			,max(case when r.insp_item_cd = #{item} then nvl(ii.ship_spec_min,null) else null end)::numeric as "${item}_spec_min"
+			,max(case when r.insp_item_cd = #{item} then nvl(ii.ship_spec_max,null) else null end)::numeric as "${item}_spec_max"
 			</foreach>
 		  from tbl_qm_insp_mast m 
 		     , tbl_qm_insp_dtl d
 		     , tbl_qm_insp_rst r 
+		     , tbl_qm_smp_insp_item ii
 		 where m.prdtn_corp_id 	= d.prdtn_corp_id
 		   and m.fac_id 		= d.fac_id
 		   and m.insp_reg_no 	= d.insp_reg_no
 		   and d.prdtn_corp_id 	= r.prdtn_corp_id
 		   and d.fac_id 		= r.fac_id
 		   and d.insp_reg_no 	= r.insp_reg_no
+		   and d.insp_smp_no  	= r.insp_smp_no
+		   and d.prdtn_corp_id  = ii.prdtn_corp_id 
+		   and d.fac_id 		= ii.fac_id 
+		   and d.smp_cd 		= ii.smp_cd 
+		   and r.insp_item_cd 	= ii.insp_item_cd
+		   and ii.activ_yn 		= 'Y'
+		   --and ii.report_use_yn = 'Y' /*일보사용여부*/
 		   and m.prdtn_corp_id 	= #{prdtnCorpId}	
 		   and m.fac_id  		= #{facId}
-		   and m.smp_insp_tp_cd = '0401'	/*검사구분[0102:수입,0401:물성,0402:외관]*/
+		   and m.smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 		   and d.insp_dtl_status= 'C'		/*진행상태[C:판정확정]*/
 		   and m.insp_tp_cd 	= #{inspTpCd}	-- 검사구분
 		   and m.smp_tp_cd 		= #{smpTpCd}	-- 시료유형
@@ -141,6 +151,7 @@
 		   <if test='inspItemRst != null and inspItemRst != ""'>
 		   and r.insp_item_rst = #{inspItemRst}
 		   </if>
+		   group by  d.lot_no, d.prdpc_id, r.pos_no, d.yarn_spd
 	),
 	calc_form as ( /*계산식 항목*/
 		select 'R' as tp, '1' as sort union
@@ -155,7 +166,7 @@
 		,yarn_spd 		as "yarnSpd"
 		,null 			as "tp"
 		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
-		,max("${item}") as "${item}"
+		,round(avg("${item}"),2) as "${item}"
 		</foreach>
 		,'0' 			as sort
 	from tb t1
@@ -170,8 +181,8 @@
 		,cf.tp
 		<foreach collection="paramInspItem"  item="item" open="" close="" separator="" index="index">
 		,case when cf.tp = 'R'   then max("${item}") - min("${item}")
-              when cf.tp = 'CV%' then pkg_qms_formula.fnc_get_cv(stddev_pop("${item}"),avg("${item}"))
-              when cf.tp = 'Cpk' then pkg_qms_formula.fnc_get_cpk2(max("${item}_spec_range"),max("${item}_spec_aim"),stddev_pop("${item}"),avg("${item}"))
+              when cf.tp = 'CV%' then pkg_qms_formula.fnc_get_cv(stddev("${item}"),avg("${item}"))
+              when cf.tp = 'Cpk' then pkg_qms_formula.fnc_get_cpk(max("${item}_spec_min"),max("${item}_spec_max"),stddev("${item}"),avg("${item}"))
          end as "${item}"
          </foreach>
         ,cf.sort

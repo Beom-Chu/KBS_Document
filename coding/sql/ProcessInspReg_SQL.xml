@@ -95,14 +95,14 @@
 		,to_char(to_date(nvl(im.reg_date,null)),'yyyy-mm-dd') as reg_date  /*등록일자*/
 		,im.remark          /*비고*/
 		,nvl(u.user_nm, im.reg_user_id) as reg_user_nm
-		,(select cc.cd_val_kr_nm from tbl_cmm_cd cc where cc.cd_tp_id='INSP_STATUS' and cc.cd_val = im.insp_status) as insp_status_nm
+		,(select cc.cd_val_kr_nm from tbl_cmm_cd cc where cc.cd_tp_id='INSP_STATUS' and cc.cd_val = im.insp_status and cc.prdtn_corp_id = im.prdtn_corp_id) as insp_status_nm
 	from tbl_qm_insp_mast im
 	    ,tbl_user	u
 	where im.prdtn_corp_id  = u.prdtn_corp_id(+)
 	  and im.reg_user_id    = u.user_id(+)
 	  and im.prdtn_corp_id  = #{prdtnCorpId} /*생산법인ID*/
 	  and im.fac_id 		= #{facId}		 /*공장ID*/
-	  and im.smp_insp_tp_cd = '0401' 			/*검사구분[0102:수입,0401:물성,0402:외관]*/
+	  and im.smp_insp_tp_cd in ('0401','0301') /*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
 	  <if test='inspRegNo != null and inspRegNo != ""'>
 	  and im.insp_reg_no	= #{inspRegNo}    /*검사등록번호*/
 	  </if>
@@ -170,7 +170,8 @@
 		,#{facId}            	/*공장ID*/
 		,#{inspRegNo} 			/*검사등록번호*/
 		,#{inspRegNm}        	/*검사등록명*/
-		,'0401'    	            /*시료검사구분코드[0401:물성]*/
+		/*검사구분[0102:수입,0401:물성,0402:외관,0301:공정중검사]*/
+		,(select smp_insp_tp_cd from qms.tbl_qm_smp_mgmt sm where sm.prdtn_corp_id = #{prdtnCorpId} and sm.fac_id = #{facId} and sm.smp_cd = #{smpTpCd})
 		,'A'       				/*검사상태[A:검사등록]*/
 		,#{inspTpCd}         	/*검사유형코드*/
 		,#{smpTpCd}          	/*시료유형코드*/
@@ -408,7 +409,13 @@
 		,#{facId}            /*공장ID*/
 		,#{inspRegNo}        /*검사등록번호*/
 		,#{inspSmpNo}        /*시료별검사번호*/
+		<if test='facId != null and facId == "2403"'>
+		/*울산:2403인 경우 Pos No 접두사 붙임*/
+		,decode(#{posNo},'#',#{posNo},(select remarks from tbl_msp_prdpc where prdpc_id = #{prdpcId})||#{posNo})
+		</if>
+		<if test='facId != null and facId != "2403"'>
 		,#{posNo}			/*Position No*/
+		</if>
 		,#{inspPosRst}		/*Pos별검사결과*/
 	)
 </insert>
@@ -498,7 +505,7 @@
 	  and ird.smp_cd		= #{smpCd}          /*시료코드*/
 	  and ird.lot_no		= #{lotNo}          /*LOT NO*/
 	  and ird.doff_no		= #{doffNo}         /*DOFFING NO*/
-	order by ii.insp_item_nm
+	order by sii.sort_no
 </select>
 
 <insert id="insertProcessInspRst" parameterType="com.qms.qmmi.vo.ProcessInspRegVO">
