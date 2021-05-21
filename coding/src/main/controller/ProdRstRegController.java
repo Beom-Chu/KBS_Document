@@ -1,16 +1,3 @@
-/*==============================================================================
-*Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
-*
-*@ProcessChain  : 생산실적등록
-*
-*@File     	  : ProdRstRegController.java
-*
-*@FileName 	  : 생산실적등록 Controller Class
-*
-* Date             Ver.      Name   Description
-*-----------------------------------------------------------------------------
-* 2021.03.30	   1.00		 KBS	  최초 생성
-==============================================================================*/
 package main.controller;
 
 import java.util.HashMap;
@@ -38,7 +25,6 @@ import msCore.util.MsCoreDateUtil;
 import msCore.util.MsCoreUtiles;
 import msCore.util.MsSessionUtil;
 
-// TODO: Auto-generated Javadoc
 @Controller
 public class ProdRstRegController extends MsCoreSupportController {
 	
