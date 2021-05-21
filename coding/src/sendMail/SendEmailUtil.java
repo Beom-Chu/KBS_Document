@@ -9,15 +9,8 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class SendEmailUtil {
-	protected final static Logger logger = LoggerFactory.getLogger(SendEmailUtil.class);		
-
-//	public final static String SMTP_ADDR    = "relay.hyosung.com";  
-//	public final static String SMTP_HOST    = "mail.smtp.host";  
 	
 	public final static String SMTP_ADDR    = System.getProperty("smtpAddr");	// smtp addr 
 	public final static String SMTP_HOST    = System.getProperty("smtpHost");	// smtp host 
@@ -67,11 +60,12 @@ public class SendEmailUtil {
 	        //메일을 전송한다.
 	        Transport.send(msg);
 	        return true;
+	        
 	    }catch (RuntimeException e) {
-	    	logger.error("caught Exception", e);
+	    	e.printStackTrace();
 	    	return false;
 		}catch(Exception e) {
-			logger.error("caught Exception", e);
+			e.printStackTrace();
 	        return false;
 	    }
 	}
