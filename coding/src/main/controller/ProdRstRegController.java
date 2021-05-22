@@ -1,16 +1,3 @@
-/*==============================================================================
-*Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
-*
-*@ProcessChain  : 생산실적등록
-*
-*@File     	  : ProdRstRegController.java
-*
-*@FileName 	  : 생산실적등록 Controller Class
-*
-* Date             Ver.      Name   Description
-*-----------------------------------------------------------------------------
-* 2021.03.30	   1.00		 KBS	  최초 생성
-==============================================================================*/
 package main.controller;
 
 import java.util.HashMap;
@@ -38,7 +25,6 @@ import msCore.util.MsCoreDateUtil;
 import msCore.util.MsCoreUtiles;
 import msCore.util.MsSessionUtil;
 
-// TODO: Auto-generated Javadoc
 @Controller
 public class ProdRstRegController extends MsCoreSupportController {
 	
@@ -70,7 +56,6 @@ public class ProdRstRegController extends MsCoreSupportController {
 		//접속자 세션정보
 		MsCoreLoginVo loginUser = (MsCoreLoginVo) MsSessionUtil.getSessionAttribute(request,"loginUser");
 				
-		//시료 관리 LOV 조회
 		Gson gson = new Gson();
 		SmpMgmtVO lovVo = new SmpMgmtVO();
 		
