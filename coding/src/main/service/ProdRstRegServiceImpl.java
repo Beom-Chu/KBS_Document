@@ -1,16 +1,3 @@
-/*==============================================================================
-*Copyright(c) 2021 HYOSUNG  ADVANCED  MATERIALS Co., Ltd. / ITRION Co., Ltd.
-*
-*@ProcessChain : 생산실적등록
-*
-*@File     : ProdRstRegServiceImpl.java
-*
-*@FileName : 생산실적등록  ServiceImpl Class
-*
-* Date             Ver.      Name   Description
-*-----------------------------------------------------------------------------
-* 2021.03.30       1.00      KBS     최초 생성
-==============================================================================*/
 
 package main.service;
 
@@ -35,7 +22,6 @@ import msCore.util.MsCoreUtiles;
 import msCore.util.MsSessionUtil;
 
 
-// TODO: Auto-generated Javadoc
 @Service("prodRstRegService")
 public class ProdRstRegServiceImpl implements ProdRstRegService{
 	

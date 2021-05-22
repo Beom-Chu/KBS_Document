@@ -56,7 +56,6 @@ public class ProdRstRegController extends MsCoreSupportController {
 		//접속자 세션정보
 		MsCoreLoginVo loginUser = (MsCoreLoginVo) MsSessionUtil.getSessionAttribute(request,"loginUser");
 				
-		//시료 관리 LOV 조회
 		Gson gson = new Gson();
 		SmpMgmtVO lovVo = new SmpMgmtVO();
 		
