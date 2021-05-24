@@ -1,5 +1,3 @@
-
-
 package main.service;
 
 import java.util.List;
@@ -16,12 +14,11 @@ import com.itrion.msCore.login.vo.MsCoreLoginVo;
 import msCore.util.MsCoreAttachFileUtil;
 import msCore.util.MsSessionUtil;
 
-// TODO: Auto-generated Javadoc
-@Service("cmmAttachFileService")
-public class AttachFileServiceImpl implements CmmAttachFileService {
+@Service("attachFileService")
+public class AttachFileServiceImpl implements AttachFileService {
 
-	@Resource(name = "cmmAttachFileMapper")
-	private CmmAttachFileMapper cmmAttachFileMapper;
+	@Resource(name = "attachFileMapper")
+	private AttachFileMapper AttachFileMapper;
 
 	/**
 	 * Gets the attach file.
@@ -88,26 +85,19 @@ public class AttachFileServiceImpl implements CmmAttachFileService {
 		//파일첨부 Util
 		MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();
 		
-		try {
+		for(CmmAttachFileVo gmVo : voList) 
+		{
+			//서버 파일 삭제
+			Boolean delYn = attachFileUtil.deleteFile(gmVo.getFileHashNm());
 			
-			for(CmmAttachFileVo gmVo : voList) 
-			{
-				//서버 파일 삭제
-				Boolean delYn = attachFileUtil.deleteFile(gmVo.getFileHashNm());
+			if(delYn) {
+				gmVo.setModifierId(loginUser.getUserId());	//로그인 Id 설정
+				gmVo.setDelFlag("Y");						//삭제구분 : Y(삭제)
 				
-				if(delYn) {
-					gmVo.setModifierId(loginUser.getUserId());	//로그인 Id 설정
-					gmVo.setDelFlag("Y");						//삭제구분 : Y(삭제)
-					
-					//파일첨부 DB 수정
-					updateAttachFile(gmVo);
-				}
+				//파일첨부 DB 수정
+				updateAttachFile(gmVo);
 			}
-			
-		} catch (Exception e) {
-			throw e;
 		}
-		
 	}
 	
 	/**
@@ -126,32 +116,25 @@ public class AttachFileServiceImpl implements CmmAttachFileService {
 		//파일첨부 Util
 		MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();
 		CmmAttachFileVo	voParam = new CmmAttachFileVo();
+
+			
+		//첨부파일 DB 조회 Param 설정
+		voParam.setFileSeq(sFileSeq);
+		List<CmmAttachFileVo> listVo = cmmAttachFileMapper.getAttachFile(voParam);
 		
-		try {
+		for(CmmAttachFileVo gmVo : listVo) 
+		{
+			//서버 파일 삭제
+			Boolean delYn = attachFileUtil.deleteFile(gmVo.getFileHashNm());
 			
-			//첨부파일 DB 조회 Param 설정
-			voParam.setFileSeq(sFileSeq);
-			List<CmmAttachFileVo> listVo = cmmAttachFileMapper.getAttachFile(voParam);
-			
-			for(CmmAttachFileVo gmVo : listVo) 
-			{
-				//서버 파일 삭제
-				Boolean delYn = attachFileUtil.deleteFile(gmVo.getFileHashNm());
+			if(delYn) {
+				gmVo.setModifierId(loginUser.getUserId());	//로그인 Id 설정
+				gmVo.setDelFlag("Y");						//삭제구분 : Y(삭제)
 				
-				if(delYn) {
-					gmVo.setModifierId(loginUser.getUserId());	//로그인 Id 설정
-					gmVo.setDelFlag("Y");						//삭제구분 : Y(삭제)
-					
-					//파일첨부 DB 수정
-					updateAttachFile(gmVo);
-				}
+				//파일첨부 DB 수정
+				updateAttachFile(gmVo);
 			}
-			
-			
-		} catch (Exception e) {
-			throw e;
 		}
-		
 	}
 
 	

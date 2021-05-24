@@ -1,4 +1,3 @@
-
 package main.controller;
 
 import java.text.DateFormat;
@@ -42,25 +41,30 @@ public class AttachFileController extends MsCoreSupportController{
 	@Resource(name="cmmCdTbdService")
 	private CmmCdTbdService cmmCdTbdService;
 	
-	// 로그 Action Name
-	private String logActionName = "파일첨부";
 	
 
 	@RequestMapping({"/getAttachFile.do"})
-	public String getAttachFile(ModelMap model, CmmAttachFileVo vo, HttpServletRequest request) throws Exception {
+	public String getAttachFile(ModelMap model, CmmAttachFileVo vo, HttpServletRequest request) {
 		
-		model.addAttribute("resultList", cmmAttachFileService.getAttachFile(vo));
+		try {
+			
+			model.addAttribute("resultList", cmmAttachFileService.getAttachFile(vo));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return "jsonView";
 	}
 	
 	
 	@RequestMapping(value = "/uploadAttachFile.do", method = RequestMethod.POST)
-	public String uploadAttachFile(ModelMap model, @RequestParam("fileFacId") String fileFacId, @RequestParam("programId") String programId, @RequestParam("fileSeq") String fileSeq, @RequestParam("file") MultipartFile file, HttpServletRequest request) throws Exception {
+	public String uploadAttachFile(ModelMap model, @RequestParam("fileFacId") String fileFacId, @RequestParam("programId") String programId, @RequestParam("fileSeq") String fileSeq, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
 		
 		try 
 		{
 			//실제 파일명
 			String originFilename = file.getOriginalFilename();
+			
 			//파일 확장자
 			String extName = originFilename.substring(originFilename.lastIndexOf("."), originFilename.length());
 
@@ -108,7 +112,7 @@ public class AttachFileController extends MsCoreSupportController{
 			}
 		
 		}catch (Exception e) {
-			System.out.println(e.toString());
+			e.printStackTrace();
 			
 			model.addAttribute("resultCode","E");  
 			model.addAttribute("resultMsg",e.getMessage());
@@ -119,17 +123,23 @@ public class AttachFileController extends MsCoreSupportController{
 	}
 
 	@RequestMapping({"/downAttachFile.do"})
-	public void downAttachFile(ModelMap model, CmmAttachFileVo vo, HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public void downAttachFile(ModelMap model, CmmAttachFileVo vo, HttpServletRequest request, HttpServletResponse response) {
 		
 		//첨부파일 다운로드
 		MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();
-		attachFileUtil.downLoadFile(vo,response);
+		try {
+			
+			attachFileUtil.downLoadFile(vo,response);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 	}
 	
 	
 	@RequestMapping(value = "/deleteAttachFile.do")
-	public String deleteAttachFile(ModelMap model,  CmmAttachFileVo vo, HttpServletRequest request) throws Exception{
+	public String deleteAttachFile(ModelMap model,  CmmAttachFileVo vo, HttpServletRequest request) {
 		
 		String jsonStr = MsCoreUtiles.readJSONStringFromRequestBody(request);		
 		Gson gson = new Gson();
@@ -143,8 +153,7 @@ public class AttachFileController extends MsCoreSupportController{
 
 		} catch (Exception e) {
 			
-			System.out.println(e.toString());
-				
+			e.printStackTrace();
 			model.addAttribute("resultCode","E");  
 			model.addAttribute("resultMsg",e.getMessage());
 			return "jsonView";
@@ -159,7 +168,7 @@ public class AttachFileController extends MsCoreSupportController{
 	
 	
 	@RequestMapping(value = "/uploadAttachFileOne.do", method = RequestMethod.POST)
-	public String uploadAttachFileOne(ModelMap model, @RequestParam("fileFacId") String fileFacId, @RequestParam("programId") String programId, @RequestParam("fileSeq") String fileSeq, @RequestParam("fileOne") MultipartFile file, HttpServletRequest request) throws Exception {
+	public String uploadAttachFileOne(ModelMap model, @RequestParam("fileFacId") String fileFacId, @RequestParam("programId") String programId, @RequestParam("fileSeq") String fileSeq, @RequestParam("fileOne") MultipartFile file, HttpServletRequest request) {
 
 		try 
 		{
@@ -227,8 +236,8 @@ public class AttachFileController extends MsCoreSupportController{
 			}
 		
 		}catch (Exception e) {
-			System.out.println(e.toString());
 			
+			e.printStackTrace();
 			model.addAttribute("resultCode","E");  
 			model.addAttribute("resultMsg",e.getMessage());
 			return "jsonView";
