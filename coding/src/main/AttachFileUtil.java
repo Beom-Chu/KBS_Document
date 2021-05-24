@@ -24,7 +24,7 @@ public class AttachFileUtil {
 	 * @return true, if successful
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public Boolean uploadFile(MultipartFile multipartFile, String saveFileName) throws Exception{
+	public Boolean uploadFile(MultipartFile multipartFile, String saveFileName) {
 		
 		Boolean result = true;
 		String sAttachFileDir = System.getProperty("attachFileDir");	//첨부파일 경로
@@ -46,6 +46,7 @@ public class AttachFileUtil {
 			
 		}catch (Exception e) {
 			e.printStackTrace();
+			result = false;
 		} 
 		
 		return result;
@@ -92,7 +93,7 @@ public class AttachFileUtil {
 	 * @return Boolean 　
 	 * @throws Exception 　
 	 */
-	public Boolean deleteFile(String delFileName) throws Exception {
+	public Boolean deleteFile(String delFileName) {
 		
 		Boolean result = true;
 		
@@ -105,13 +106,11 @@ public class AttachFileUtil {
 			
 			if(file.exists()){
 				file.delete();
-//				logger.info("[[[[파일 삭제됨");
-			}else{
-//				logger.info("[[[[파일 없음");
 			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			result = false;
 		}
 		
 		return result;
