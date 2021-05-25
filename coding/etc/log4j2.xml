@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Properties>
+        <Property name="logNm">systemlog</Property>
+        <Property name="layoutPattern">%d [%t] %-5level %c(%M:%L) - %m%n</Property>
+    </Properties>
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${layoutPattern}" />
+        </Console>
+
+        <!-- a${sys:catalina.home} means tomcat server root -->
+
+        <RollingFile name="file"
+            fileName="${sys:catalina.home}/logs/${logNm}.log"
+            filePattern="${sys:catalina.home}/logs/${logNm}_%d{yyyy-MM-dd}_%i.log">
+            <PatternLayout pattern="${layoutPattern}" />
+            <Policies>
+                <OnStartupTriggeringPolicy />
+                <TimeBasedTriggeringPolicy interval="6"
+                    modulate="true" />
+                <SizeBasedTriggeringPolicy size="250 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="500"
+                fileIndex="min" />
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+
+
+        <!-- allowed value of level : off < fatal < error < warn < info < debug < trace -->
+
+        <Root level="debug" additivity="true">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="file" />
+        </Root>
+
+        <logger name="org.springframework" level="info"
+            additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="file" />
+        </logger>
+        <logger name="org.apache.commons.digester" level="warn"
+            additivity="false">
+            <AppenderRef ref="console" />
+            <AppenderRef ref="file" />
+        </logger>
+		
+		<logger name="jdbc.resultsettable" level="OFF"/>
+		<logger name="jdbc.resultset" level="OFF"/>
+		<logger name="jdbc.audit" level="OFF"/>
+		<logger name="jdbc.sqltiming" level="OFF"/>
+		
+		<logger name="org.quartz.core.QuartzSchedulerThread" level="OFF"/>
+		<!--logger name="org.apache.kafka" level="OFF"/-->
+		<logger name="msCore.util.FileUploadUtil" level="OFF"/>
+		
+		<!-- Alarm Message 조회 로그 OFF -->
+		<logger name="com.itrion.msCore.login.service.impl.MsCoreLoginMapper.getMainAlarmMessage" level="OFF"/>
+		
+		<!-- 특정 쿼리 로그 필터 -->
+		<Logger name="jdbc.sqlonly" level="DEBUG">
+		<RegexFilter regex="(?s).*NOT_SQL_LOG.*" onMatch="DENY" onMismatch="NEUTRAL" useRawMsg="true" />
+		</Logger>
+
+		
+    </Loggers>
+</Configuration>
