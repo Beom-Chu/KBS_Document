@@ -60,6 +60,7 @@
 		<logger name="com.itrion.msCore.login.service.impl.MsCoreLoginMapper.getMainAlarmMessage" level="OFF"/>
 		
 		<!-- 특정 쿼리 로그 필터 -->
+		<!-- 쿼리에 [NOT_SQL_LOG] 구문 포함시 필터링 -->
 		<Logger name="jdbc.sqlonly" level="DEBUG">
 		<RegexFilter regex="(?s).*NOT_SQL_LOG.*" onMatch="DENY" onMismatch="NEUTRAL" useRawMsg="true" />
 		</Logger>
