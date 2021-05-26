@@ -40,6 +40,11 @@ public class AttachFileUtil {
 				fileSaveDir.mkdirs();
 			}
 			
+			// 디렉토리 권한
+			fileSaveDir.setReadable(true);
+			fileSaveDir.setWritable(true);
+			fileSaveDir.setExecutable(true);
+			
 			byte[] data = multipartFile.getBytes();
 			
 			fos.write(data);
