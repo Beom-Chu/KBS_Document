@@ -116,7 +116,6 @@ public class AttachFileController extends MsCoreSupportController{
 			
 			model.addAttribute("resultCode","E");  
 			model.addAttribute("resultMsg",e.getMessage());
-			return "jsonView";
 		}
 			
 		return "jsonView";
@@ -151,16 +150,15 @@ public class AttachFileController extends MsCoreSupportController{
 			//첨부파일 DB 정보 삭제(Del Flag : Y)
 			cmmAttachFileService.deleteWholeAttachFile(gmVoList,request);
 
+			model.addAttribute("resultCode", "S");
+			model.addAttribute("resultMsg", "정상처리되었습니다.");
+			
 		} catch (Exception e) {
 			
 			e.printStackTrace();
 			model.addAttribute("resultCode","E");  
 			model.addAttribute("resultMsg",e.getMessage());
-			return "jsonView";
 		}
-		
-		model.addAttribute("resultCode", "S");
-		model.addAttribute("resultMsg", "정상처리되었습니다.");
 		
 		return "jsonView";
 		
@@ -240,7 +238,6 @@ public class AttachFileController extends MsCoreSupportController{
 			e.printStackTrace();
 			model.addAttribute("resultCode","E");  
 			model.addAttribute("resultMsg",e.getMessage());
-			return "jsonView";
 		}
 			
 		return "jsonView";
