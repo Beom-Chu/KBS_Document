@@ -1,3 +1,2 @@
-# KBS_Document
+### 기록용 Repository
 
-### 기록용
