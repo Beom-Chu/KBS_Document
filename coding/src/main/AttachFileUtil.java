@@ -8,11 +8,13 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 
 import sun.misc.IOUtils;
 
+@Component("attachFileUtil")
 public class AttachFileUtil {
 	
 		

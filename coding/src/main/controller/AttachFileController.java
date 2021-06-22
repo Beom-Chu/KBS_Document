@@ -41,6 +41,8 @@ public class AttachFileController extends MsCoreSupportController{
 	@Resource(name="cmmCdTbdService")
 	private CmmCdTbdService cmmCdTbdService;
 	
+	@Resource(name = "attachFileUtil")
+	private AttachFileUtil attachFileUtil;
 	
 
 	@RequestMapping({"/getAttachFile.do"})
@@ -74,7 +76,6 @@ public class AttachFileController extends MsCoreSupportController{
 			saveFileName += extName;
 			
 			// 파일 첨부
-			MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();
 			Boolean result = attachFileUtil.uploadFile(file, saveFileName);
 			
 			if(result) {
@@ -125,7 +126,6 @@ public class AttachFileController extends MsCoreSupportController{
 	public void downAttachFile(ModelMap model, CmmAttachFileVo vo, HttpServletRequest request, HttpServletResponse response) {
 		
 		//첨부파일 다운로드
-		MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();
 		try {
 			
 			attachFileUtil.downLoadFile(vo,response);
@@ -171,7 +171,6 @@ public class AttachFileController extends MsCoreSupportController{
 		try 
 		{
 			CmmAttachFileVo vo = new CmmAttachFileVo();
-			MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();	//파일첨부 유틸
 			MsCoreLoginVo loginUser = (MsCoreLoginVo) MsSessionUtil.getSessionAttribute(request,"loginUser"); //접속자 세션정보
 			
 			//실제 파일명

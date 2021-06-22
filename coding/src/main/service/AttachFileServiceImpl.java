@@ -19,6 +19,9 @@ public class AttachFileServiceImpl implements AttachFileService {
 
 	@Resource(name = "attachFileMapper")
 	private AttachFileMapper AttachFileMapper;
+	
+	@Resource(name = "attachFileUtil")
+	private AttachFileUtil attachFileUtil;
 
 	/**
 	 * Gets the attach file.
@@ -82,9 +85,6 @@ public class AttachFileServiceImpl implements AttachFileService {
 		//접속자 세션정보
 		MsCoreLoginVo loginUser = (MsCoreLoginVo) MsSessionUtil.getSessionAttribute(request,"loginUser");
 		
-		//파일첨부 Util
-		MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();
-		
 		for(CmmAttachFileVo gmVo : voList) 
 		{
 			//서버 파일 삭제
@@ -113,8 +113,6 @@ public class AttachFileServiceImpl implements AttachFileService {
 		//접속자 세션정보
 		MsCoreLoginVo loginUser = (MsCoreLoginVo) MsSessionUtil.getSessionAttribute(request,"loginUser");
 		
-		//파일첨부 Util
-		MsCoreAttachFileUtil attachFileUtil = new MsCoreAttachFileUtil();
 		CmmAttachFileVo	voParam = new CmmAttachFileVo();
 
 			
