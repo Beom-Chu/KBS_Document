@@ -20,7 +20,9 @@ public class FileUtil {
    */
   static public String uploadFile(MultipartFile file, String filePath) {
 
-    String fileUniqueName = UUID.randomUUID().toString();
+    String originFilename = file.getOriginalFilename();
+    String extName = originFilename.substring(originFilename.lastIndexOf("."), originFilename.length());
+    String fileUniqueName = UUID.randomUUID() + extName;
 
     try {
 
@@ -71,9 +73,9 @@ public class FileUtil {
 
     try (FileInputStream fis = new FileInputStream(fileToDownload);) {
 
-      // 한글깨짐 방지 , 공백이 '+'로 변경 방지 
+      // 한글깨짐 방지 , 공백이 '+'로 변경 방지
       String encodeFileName = URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
-      
+
       response.setContentType("application/octet-stream; charset=utf-8");
       response.setHeader("Content-Transfer-Encoding", "binary");
       response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + encodeFileName);
@@ -110,9 +112,9 @@ public class FileUtil {
 
       if (file.exists()) {
         file.delete();
-        
+
       } else {
-        //파일이 존재하지 않음
+        // 파일이 존재하지 않음
         success = false;
       }
 
