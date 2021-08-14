@@ -17,6 +17,7 @@ public class StreamTest {
 
     int[] arrInt = {3, 2, 5, 1, 4};
     String[] arrStr = {"B", "A", "D", "C"};
+    String[] arrStrNo = {"1","2","3","4"};
     List<Integer> liInt = Arrays.asList(6, 8, 5, 7, 4);
     List<String> liStr = Arrays.asList("Java", "Scala", "Groovy", "Python", "Go", "Swift");
 
@@ -26,6 +27,7 @@ public class StreamTest {
     List<String> rtnLiStr = streamTest.convArrStrToLiStr(arrStr);
     int[] rtnArrInt = streamTest.convLiIntegerToArrInt(liInt);
     String[] rtnArrStr = streamTest.convLiStrToArrStr(liStr);
+    int[] rtnArrIntNo = streamTest.ConvLiStrNoToArrIntNo(arrStrNo);
 
     List<Integer> rtnDistLi = new ArrayList<>(rtnLiInt);
     rtnDistLi.addAll(liInt);
@@ -51,6 +53,17 @@ public class StreamTest {
 
     // 출력
     // streamTest.out(sFiltStWith);
+  }
+
+
+
+  /**
+   * String 배열 숫자 -> int 배열
+   * @param arrStrNo
+   * @return
+   */
+  private int[] ConvLiStrNoToArrIntNo(String[] arrStrNo) {
+    return Arrays.stream(arrStrNo).mapToInt(Integer::parseInt).toArray();
   }
 
 
